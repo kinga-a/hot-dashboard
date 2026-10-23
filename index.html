@@ -32,6 +32,28 @@
   .pill .dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18);}
   .admin-link{margin-left:8px;font-size:12.5px;color:var(--accent);text-decoration:none;font-weight:600;}
   .admin-link:hover{text-decoration:underline;}
+  .mh-right{display:flex;align-items:center;gap:12px;}
+  /* ===== 搜索 ===== */
+  .search{position:relative;}
+  .search .s-box{display:flex;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:0 8px 0 13px;height:38px;width:250px;gap:8px;box-shadow:0 1px 3px rgba(16,24,40,.05);transition:border-color .15s,box-shadow .15s;}
+  .search .s-box:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.12);}
+  .search .s-box svg{width:15px;height:15px;color:#9aa3b2;flex:0 0 auto;}
+  .search input{border:none;outline:none;font-size:13px;width:100%;background:transparent;color:var(--ink);}
+  .search input::placeholder{color:#b4bcc9;}
+  .search .s-clear{border:none;background:#eef2f8;color:#7b8496;width:20px;height:20px;border-radius:50%;font-size:13px;line-height:1;cursor:pointer;display:none;place-items:center;flex:0 0 auto;}
+  .search .s-clear.show{display:grid;}
+  .search .s-clear:hover{background:#e2e8f2;color:var(--ink);}
+  .search-panel{position:absolute;top:calc(100% + 8px);right:0;width:min(480px,90vw);background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 40px rgba(16,24,40,.15);display:none;overflow:hidden;z-index:50;}
+  .search-panel.show{display:block;}
+  .sr-head{padding:10px 14px;font-size:12.5px;color:var(--muted);border-bottom:1px solid var(--line);background:#f8fafc;}
+  .sr-list{max-height:min(60vh,420px);overflow-y:auto;}
+  .sr-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-top:1px solid #f0f2f7;font-size:13px;line-height:1.45;}
+  .sr-item:first-child{border-top:none;}
+  .sr-item a{color:var(--ink);text-decoration:none;min-width:0;flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+  .sr-item a:hover{color:var(--accent);}
+  .sr-tag{flex:0 0 auto;font-size:11px;color:#fff;border-radius:5px;padding:2px 7px;white-space:nowrap;font-weight:600;}
+  .sr-hot{flex:0 0 auto;font-size:11px;color:var(--muted);white-space:nowrap;}
+  .sr-empty{padding:22px;text-align:center;color:#b4bcc9;font-size:13px;}
   .divider{height:1px;background:var(--line);margin:22px 0 6px;}
 
   .group{margin-top:34px;}
@@ -39,6 +61,11 @@
   .group-head .tag{width:5px;height:20px;border-radius:3px;}
   .group-head h2{font-size:19px;font-weight:700;}
   .group-head .count{font-size:12.5px;color:var(--muted);margin-left:auto;}
+  .group-head .gcollapse{border:none;background:transparent;color:#9aa3b2;cursor:pointer;font-size:13px;line-height:1;width:26px;height:26px;border-radius:7px;display:grid;place-items:center;transition:background .15s,color .15s;}
+  .group-head .gcollapse:hover{background:#eef2f8;color:var(--ink);}
+  /* 分类折叠：collapsed 时隐藏整行卡片 */
+  .group.collapsed .row{display:none;}
+  .group.collapsed .group-head{margin-bottom:0;}
   .row{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 16px 12px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 6px 18px rgba(16,24,40,.04);display:flex;flex-direction:column;min-width:0;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;}
   .card:hover{transform:translateY(-3px);box-shadow:0 4px 10px rgba(16,24,40,.06),0 14px 30px rgba(16,24,40,.09);border-color:#d8e0ee;}
@@ -80,6 +107,10 @@
   @media (max-width:640px){
     body{padding:20px 14px 40px;}
     .masthead h1{font-size:22px;}
+    .mh-right{width:100%;flex-wrap:wrap;gap:10px;}
+    .search{width:100%;}
+    .search .s-box{width:100%;}
+    .search-panel{width:100%;right:auto;left:0;}
     /* 手机端单列竖排：每张卡片完整可读 */
     .row{grid-template-columns:repeat(1,1fr) !important;}
     .card{padding:15px 15px 12px;}
@@ -98,7 +129,17 @@
       </h1>
       <div class="sub">全网热搜 · 体育赛事 · 影视动态 · 每日资讯 一站式预览</div>
     </div>
-    <div class="pill"><span class="dot"></span><span id="status">加载中…</span><a class="admin-link" href="/admin.html">管理</a></div>
+    <div class="mh-right">
+      <div class="pill"><span class="dot"></span><span id="status">加载中…</span><a class="admin-link" href="/admin.html">管理</a></div>
+      <div class="search">
+        <span class="s-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="searchInput" type="search" placeholder="搜索新闻标题…" autocomplete="off" />
+          <button id="searchClear" class="s-clear" type="button" aria-label="清空">×</button>
+        </span>
+        <div id="searchPanel" class="search-panel"></div>
+      </div>
+    </div>
   </header>
   <div class="divider"></div>
   <div id="app"><div class="loading-row">正在加载看板数据…</div></div>
@@ -114,6 +155,8 @@ const CACHE_TTL = 0; // 0 表示以 refreshSeconds 为准
 
 let CONFIG = { refreshSeconds: 600, groups: [] };
 let timers = [];
+const BOARD_DATA = {}; // id -> {src, items}，供搜索使用
+function storeData(src, items){ if (items && items.length) BOARD_DATA[src.id] = { src, items }; }
 
 function flameIcon(){return '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s4 4.5 4 8.5a4 4 0 0 1-8 0C8 6.5 12 2 12 2z"/><path d="M12 22c4 0 6.5-2.5 6.5-6 0-2-1-4-2.5-5.5-.3 1.5-1 3-2 4 0-2.5-.8-5-2.6-7C10.4 9 9 11.6 9 13.6c0 2.5-1.6 3.4-1.6 3.4S6 16 6 16.6C6 20 8 22 12 22z"/></svg>';}
 
@@ -169,12 +212,14 @@ async function loadSource(src, el){
 
   // 缓存未过期：直接渲染缓存，不重复请求
   if (cached && cached.t && (now - cached.t) < staleMs) {
+    storeData(src, cached.items);
     renderCard(el, src, cached.items, cached.t, null);
     return;
   }
 
   // 有缓存但过期：先展示旧数据（标注抓取时间），再后台刷新
   if (cached && cached.items) {
+    storeData(src, cached.items);
     renderCard(el, src, cached.items, cached.t, null);
   } else {
     el.querySelector('.list').innerHTML = '<div class="loading">加载中…</div>';
@@ -194,6 +239,7 @@ async function loadSource(src, el){
     if (!items.length) throw new Error('解析结果为空');
     const entry = { t: Date.now(), items };
     cacheSet(key, entry);
+    storeData(src, items);
     renderCard(el, src, items, entry.t, null);
   } catch (e) {
     // 刷新失败：保留旧数据并标注
@@ -277,7 +323,7 @@ async function loadBoard(){
       const cards = g.cards || [];
       return `
         <section class="group">
-          <div class="group-head"><span class="tag" style="background:${g.color}"></span><h2>${escapeHtml(g.name)}</h2><span class="count">${cards.length} 个数据源</span></div>
+          <div class="group-head"><span class="tag" style="background:${g.color}"></span><h2>${escapeHtml(g.name)}</h2><span class="count">${cards.length} 个数据源</span><button class="gcollapse" type="button" title="折叠分类" aria-label="折叠或展开分类">▴</button></div>
           <div class="row" style="grid-template-columns:repeat(${cols},1fr)">${cards.map(c=>`
             <article class="card" data-src="${c.id}" data-show-items="${c.showItems||6}">
               <div class="card-top">
@@ -321,12 +367,22 @@ async function loadBoard(){
   }
 }
 
-// toast 提示 + 卡片展开/收起（事件委托）
+// toast 提示 + 卡片展开/收起 + 分类折叠（事件委托）
 (function(){
   const t=document.createElement('div');t.className='toast';document.body.appendChild(t);
   let timer;
   function show(msg){t.textContent=msg;t.classList.add('show');clearTimeout(timer);timer=setTimeout(()=>t.classList.remove('show'),1800);}
   document.addEventListener('click',e=>{
+    // 分类整体折叠
+    const gb = e.target.closest('.gcollapse');
+    if (gb) {
+      const group = gb.closest('.group');
+      if (!group) return;
+      group.classList.toggle('collapsed');
+      gb.textContent = group.classList.contains('collapsed') ? '▾' : '▴';
+      gb.title = group.classList.contains('collapsed') ? '展开分类' : '折叠分类';
+      return;
+    }
     const btn = e.target.closest('.expand');
     if (btn) {
       const card = btn.closest('.card');
@@ -345,6 +401,61 @@ async function loadBoard(){
     if(a && (!a.href || a.href==='#')) { e.preventDefault(); show('该条目暂无跳转链接'); }
   });
 })();
+
+/* ===== 新闻搜索 ===== */
+const searchInput = document.getElementById('searchInput');
+const searchClear = document.getElementById('searchClear');
+const searchPanel = document.getElementById('searchPanel');
+let searchTimer = null;
+
+function closeSearch(){
+  searchPanel.classList.remove('show');
+  searchPanel.innerHTML = '';
+}
+function runSearch(){
+  const q = (searchInput.value || '').trim().toLowerCase();
+  if (!q) { searchClear.classList.remove('show'); closeSearch(); return; }
+  searchClear.classList.add('show');
+  const results = [];
+  for (const id in BOARD_DATA) {
+    const d = BOARD_DATA[id];
+    for (const it of d.items) {
+      const title = String(it.title || '');
+      if (title.toLowerCase().includes(q)) results.push({ src: d.src, it });
+    }
+  }
+  if (!results.length) {
+    searchPanel.innerHTML = '<div class="sr-empty">未找到包含「' + escapeHtml(q) + '」的新闻</div>';
+  } else {
+    const top = results.slice(0, 120);
+    searchPanel.innerHTML = '<div class="sr-head">在 ' + Object.keys(BOARD_DATA).length + ' 个数据源中找到 ' + results.length + ' 条相关新闻' + (results.length > top.length ? '（显示前 ' + top.length + ' 条）' : '') + '</div><div class="sr-list">' + top.map(r => `
+      <div class="sr-item">
+        <span class="sr-tag" style="background:${r.src.iconColor||'#2563eb'}">${escapeHtml(r.src.name)}</span>
+        <a href="${safeUrl(r.it.url)}" target="_blank" rel="noopener" title="${escapeHtml(r.it.title)}">${escapeHtml(r.it.title)}</a>
+        ${r.it.hot ? `<span class="sr-hot">${escapeHtml(String(r.it.hot))}</span>` : ''}
+      </div>`).join('') + '</div>';
+  }
+  searchPanel.classList.add('show');
+}
+
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(runSearch, 200);
+});
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { clearTimeout(searchTimer); runSearch(); }
+  if (e.key === 'Escape') { searchInput.value = ''; closeSearch(); searchClear.classList.remove('show'); }
+});
+searchClear.addEventListener('click', () => {
+  searchInput.value = '';
+  closeSearch();
+  searchClear.classList.remove('show');
+  searchInput.focus();
+});
+// 点击搜索框外部关闭结果面板
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.search')) closeSearch();
+});
 
 loadBoard();
 </script>
