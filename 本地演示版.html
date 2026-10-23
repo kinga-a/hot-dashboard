@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>热点聚合看板 · 本地演示版</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232563eb'/%3E%3Cpath d='M9 18l5-7 4 5 5-7' stroke='white' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<style>
+  :root{--bg:#f2f4f8;--card:#fff;--ink:#1c2333;--muted:#7b8496;--line:#e5e9f0;--accent:#2563eb;--red:#ef4444;--orange:#f97316;--amber:#eab308;--gray:#9aa3b2;--danger:#dc2626;--ok:#16a34a;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:"PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;background:var(--bg);
+    background-image:radial-gradient(circle at 18% 6%, rgba(37,99,235,.08), transparent 38%),radial-gradient(circle at 86% 12%, rgba(16,185,129,.07), transparent 34%),linear-gradient(#e7ebf2 1px, transparent 1px),linear-gradient(90deg,#e7ebf2 1px, transparent 1px);
+    background-size:auto,auto,26px 26px,26px 26px;color:var(--ink);min-height:100vh;padding:24px;}
+  .wrap{max-width:1280px;margin:0 auto;}
+  /* 顶部导航 */
+  .masthead{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:6px;flex-wrap:wrap;}
+  .masthead h1{font-size:24px;font-weight:800;display:flex;align-items:center;gap:12px;}
+  .masthead h1 .logo{width:38px;height:38px;border-radius:11px;flex:0 0 38px;background:linear-gradient(135deg,#2563eb,#4f46e5);display:grid;place-items:center;box-shadow:0 6px 16px rgba(37,99,235,.28);}
+  .masthead h1 .logo svg{width:22px;height:22px;}
+  .nav{display:flex;gap:8px;background:var(--card);padding:4px;border-radius:11px;border:1px solid var(--line);box-shadow:0 1px 3px rgba(16,24,40,.05);}
+  .nav button{border:none;background:transparent;border-radius:8px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted);transition:.15s;}
+  .nav button.active{background:var(--accent);color:#fff;}
+  .banner{font-size:13px;color:var(--muted);background:#eef3ff;border:1px solid #d6e3ff;border-radius:10px;padding:9px 14px;margin:14px 0 4px;line-height:1.6;}
+  .divider{height:1px;background:var(--line);margin:14px 0;}
+  /* 看板 */
+  .group{margin-top:30px;}
+  .group-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .group-head .tag{width:5px;height:20px;border-radius:3px;}
+  .group-head h2{font-size:19px;font-weight:700;}
+  .group-head .count{font-size:12.5px;color:var(--muted);margin-left:auto;}
+  .row{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 16px 12px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 6px 18px rgba(16,24,40,.04);display:flex;flex-direction:column;min-width:0;transition:transform .18s ease,box-shadow .18s ease;}
+  .card:hover{transform:translateY(-3px);box-shadow:0 4px 10px rgba(16,24,40,.06),0 14px 30px rgba(16,24,40,.09);}
+  .card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;}
+  .card-top .src{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .card-top .ico{flex:0 0 auto;color:inherit;}
+  .card-top .ico svg{width:16px;height:16px;display:block;}
+  .card .list{list-style:none;display:flex;flex-direction:column;flex:1;}
+  .card .item{display:flex;align-items:flex-start;gap:9px;padding:5.5px 0;border-top:1px solid #f0f2f7;font-size:13.5px;line-height:1.5;}
+  .card .item:first-child{border-top:none;}
+  .card .item a{color:var(--ink);text-decoration:none;min-width:0;}
+  .card .item a:hover{color:var(--accent);}
+  .rank{flex:0 0 17px;width:17px;height:17px;border-radius:4.5px;font-size:11px;font-weight:700;color:#fff;display:inline-flex;align-items:center;justify-content:center;margin-top:2px;}
+  .r1{background:var(--red);}.r2{background:var(--orange);}.r3{background:var(--amber);}.r4{background:var(--gray);}
+  .card .empty{color:#b4bcc9;font-size:13px;padding:16px 0;text-align:center;flex:1;}
+  .card .more{text-align:right;font-size:11.5px;color:#b4bcc9;margin-top:10px;}
+  .loading-row{color:#777;padding:24px;font-size:14px;}
+  /* 后台 */
+  .btn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:9px;padding:8px 14px;font-size:13.5px;font-weight:600;cursor:pointer;transition:.15s;font-family:inherit;}
+  .btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{background:#1d4ed8;}
+  .btn-ghost{background:#eef2f7;color:var(--ink);}.btn-ghost:hover{background:#e2e8f0;}
+  .btn-danger{background:#fef2f2;color:var(--danger);}.btn-danger:hover{background:#fee2e2;}
+  .btn-sm{padding:5px 10px;font-size:12.5px;border-radius:7px;}
+  .acard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(16,24,40,.05);}
+  .acard h3{font-size:15px;font-weight:700;margin-bottom:12px;}
+  .grp{border-left:4px solid var(--accent);}
+  .grp-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .grp-head .name{font-size:16px;font-weight:700;flex:1;min-width:120px;}
+  .grp-head .info{font-size:12.5px;color:var(--muted);}
+  .src-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-top:10px;background:#fafbfd;flex-wrap:wrap;}
+  .src-row .nm{font-weight:600;font-size:13.5px;}
+  .src-row .url{color:var(--muted);font-size:12px;flex:1;min-width:140px;word-break:break-all;}
+  .src-row .meta{font-size:12px;color:var(--muted);}
+  .src-row .ops{margin-left:auto;display:flex;gap:6px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px;font-weight:600;}
+  .field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:16px;font-family:inherit;background:#fff;}
+  .field input:focus,.field textarea:focus{border-color:var(--accent);outline:none;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  .modal{position:fixed;inset:0;background:rgba(15,23,42,.4);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto;}
+  .modal.show{display:flex;}
+  .modal-box{background:#fff;border-radius:16px;padding:22px;max-width:640px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.25);}
+  .modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;}
+  .msg{padding:10px 12px;border-radius:9px;font-size:13.5px;margin-bottom:14px;display:none;}
+  .msg.ok{background:#f0fdf4;color:var(--ok);border:1px solid #bbf7d0;display:block;}
+  .msg.err{background:#fef2f2;color:var(--danger);border:1px solid #fecaca;display:block;}
+  .hint{font-size:12px;color:var(--muted);line-height:1.6;}
+  .empty{padding:20px;text-align:center;color:var(--muted);font-size:14px;}
+  .toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(16px);background:#1c2333;color:#fff;font-size:13px;padding:10px 18px;border-radius:10px;box-shadow:0 8px 24px rgba(16,24,40,.22);opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;z-index:99;max-width:80vw;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .foot{text-align:center;color:#a6aebb;font-size:12px;margin-top:44px;line-height:1.7;}
+  @media (max-width:1080px){.row{grid-template-columns:repeat(5,minmax(250px,1fr));overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:8px;}.card{scroll-snap-align:start;}}
+  @media (max-width:640px){.row2,.row3{grid-template-columns:1fr;}body{padding:16px;}.masthead h1{font-size:21px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <h1><span class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M4 17l6-8 5 6 5-7" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>热点聚合看板</h1>
+    <div class="nav">
+      <button id="navView" class="active" onclick="showView('view')">看板</button>
+      <button id="navAdmin" onclick="showView('admin')">管理后台</button>
+    </div>
+  </div>
+  <div class="banner">本地演示版：用浏览器 localStorage 模拟 KV 后端，看板与后台均可实际操作。正式 EdgeOne 版为前后端分离（边缘函数 + KV），代码已推送 GitHub。本地存储修改后点「重置演示数据」可恢复示例。</div>
+  <div class="divider"></div>
+
+  <!-- ===== 看板视图 ===== -->
+  <div id="view">
+    <div id="app"><div class="loading-row">正在加载看板数据…</div></div>
+    <div class="foot">热点聚合看板 · 本地演示 · 数据来自 localStorage 模拟 KV</div>
+  </div>
+
+  <!-- ===== 后台视图 ===== -->
+  <div id="admin" style="display:none;">
+    <div id="amsg"></div>
+    <div class="acard">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+        <h3 style="margin-bottom:0;">全局设置</h3>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="resetDemo()">重置演示数据</button>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>数据自动刷新间隔（秒）</label><input type="number" id="refresh" min="30" step="30" /></div>
+      </div>
+      <button class="btn btn-primary" onclick="saveRefresh()">保存刷新设置</button>
+    </div>
+
+    <div class="acard">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <h3 style="margin-bottom:0;">分类管理</h3>
+        <button class="btn btn-primary" onclick="openGroupModal()">+ 新建分类</button>
+      </div>
+      <div id="groups" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="hint" style="text-align:center;margin-top:16px;">分类可新建/删除/上移下移排序；每分类可设卡片数量(1~5)与显示条数。数据源为任意返回 JSON 的榜单接口，可配列表路径与标题/链接字段。</div>
+  </div>
+</div>
+
+<!-- 新建/编辑分类弹窗 -->
+<div class="modal" id="groupModal">
+  <div class="modal-box">
+    <h3 id="groupModalTitle">新建分类</h3>
+    <div class="field"><label>分类名称</label><input id="gName" placeholder="如：热点新闻" /></div>
+    <div class="row2">
+      <div class="field"><label>分类颜色</label><input type="color" id="gColor" value="#2563eb" /></div>
+      <div class="field"><label>卡片数量（1~5）</label><input type="number" id="gCount" min="1" max="5" value="5" /></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('groupModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveGroup()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 添加/编辑数据源弹窗 -->
+<div class="modal" id="srcModal">
+  <div class="modal-box">
+    <h3 id="srcModalTitle">添加数据源</h3>
+    <input type="hidden" id="sGroupId" /><input type="hidden" id="sId" />
+    <div class="field"><label>数据源名称</label><input id="sName" placeholder="如：微博热搜" /></div>
+    <div class="field"><label>接口 URL</label><input id="sUrl" placeholder="https://example.com/api/hot" /></div>
+    <div class="row3">
+      <div class="field"><label>列表路径（可选）</label><input id="sPath" placeholder="如 data.list" /></div>
+      <div class="field"><label>标题字段</label><input id="sTitle" value="title" /></div>
+      <div class="field"><label>链接字段</label><input id="sUrlField" value="url" /></div>
+    </div>
+    <div class="row3">
+      <div class="field"><label>显示条数</label><input type="number" id="sShow" min="1" max="20" value="6" /></div>
+      <div class="field"><label>图标颜色</label><input type="color" id="sColor" value="#2563eb" /></div>
+      <div class="field"><label>请求头(可选)</label><input id="sHeaders" placeholder='{"User-Agent":"Mozilla/5.0"}' /></div>
+    </div>
+    <div class="hint">本地演示：接口不会真正请求，仅保存配置。正式版由边缘函数 /api/proxy 抓取并缓存到 KV。</div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('srcModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveSource()">保存数据源</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast"></div>
+
+<script>
+/* ============ 本地演示：localStorage 模拟 KV 存储 ============ */
+const CONFIG_KEY = 'hotdemo_config';
+
+// 演示默认数据源示例榜单（按名称映射，模拟 proxy 抓取结果）
+const SAMPLE_DATA = {
+  "微博热搜":["国乒世乒赛8强全部产生","国庆假期出行预计超15亿人次","新一代手机发布会官宣下月12日","多地入秋迎首场降雪","AI大模型新规明起施行","新款折叠屏曝光：更轻更薄"],
+  "百度热搜":["油价今晚迎来年内最大下调","电商双十一预售今晚开启","神舟十九号发射窗口确定","城市地铁新线今日开通","医保跨省结算再扩围","国产大飞机新增国际航线"],
+  "知乎热榜":["如何评价新一代旗舰芯片功耗","35岁职场焦虑的真实解法","AI会取代哪些初级岗位","年轻人为什么越来越爱攒钱","国产数据库能否弯道超车","远程办公三年后的反思"],
+  "B站热搜":["硬核拆解：一台手机的诞生","百大UP主年度榜单揭晓","考研数学冲刺全攻略","国产动漫新作惊艳预告","程序员周末改造房车","古风音乐串烧翻唱爆火"],
+  "抖音热点":["全网挑战：跳这组卡点舞","美食探店｜巷子里的老火锅","萌宠治愈系日常合集","街头采访：你的梦想是什么","手工达人自制机甲模型","秋天第一杯奶茶复刻版"],
+  "虎扑热榜":["季后赛MVP之争进入白热化","转会窗口重磅签约官宣","中国男篮集训名单公布","五大联赛本轮焦点战复盘","新秀赛季场均数据出炉","球迷热议：裁判争议判罚"],
+  "懂球帝":["欧冠淘汰赛抽签结果出炉","英超争冠形势最新分析","国家队友谊赛阵容公布","青训新星海外首秀破门","战术板：高位逼抢详解","中超保级大战今晚开打"],
+  "直播吧":["F1收官站正赛全程回顾","NBA常规赛揭幕战数据","CBA新赛季赛程公布","网球大师赛决赛看点","斯诺克世锦赛资格赛","电竞联赛总决赛今晚打响"],
+  "新浪体育":["全运会田径赛场创纪录","游泳世锦赛中国队斩获","羽毛球大师赛包揽四强","马拉松赛事本周末开跑","体操世锦赛全能决赛","冰雪项目集训冬训启动"],
+  "NGA体育":["环法最后赛段冲刺决战","英超球场改造计划获批","电竞战队重组阵容官宣","户外越野赛报名指南","健身达人分享增肌干货","跑步装备年度测评榜单"],
+  "豆瓣电影":["《沙丘2》评分8.5上映热映","国产科幻《流浪地球3》定档","《繁花》剧集口碑持续走高","奥斯卡最佳影片前瞻盘点","年度十佳影片榜单公布","经典老片修复版重映引热议"],
+  "猫眼电影":["《哪吒2》票房突破60亿","贺岁档新片排期公布","本周观影指南新鲜出炉","国庆档大片预售开启","影迷热推：年度口碑黑马","IMAX特效厅观影攻略"],
+  "B站影视":["高分纪录片《舌尖中国》","网飞新剧《三体》中文版","国漫剧场版预告震撼","经典日漫剧场版重制","UP主解析《奥本海默》","悬疑新片伏笔全盘点"],
+  "微博影视":["视后视帝颁奖礼今晚直播","新剧开机发布会现场","演员造型红毯惊艳全场","影视OST唱将盘点","古装剧服化道细节出圈","综艺节目新一季官宣"],
+  "IMDb热榜":["《Dune:PartTwo》8.5分","《Oppenheimer》稳居口碑榜","《The Bear》第三季封神","年度必看美剧榜单出炉","《Deadpool3》爆笑回归","高分动画《蜘蛛侠2》上线"]
+};
+const SAMPLE_ICON = {
+  "微博热搜":"#E6162D","百度热搜":"#2932E1","知乎热榜":"#0084FF","B站热搜":"#FB7299","抖音热点":"#25F4EE",
+  "虎扑热榜":"#FF6A00","懂球帝":"#1E9E6A","直播吧":"#EC1C24","新浪体育":"#EB3B47","NGA体育":"#00A0DC",
+  "豆瓣电影":"#00B51D","猫眼电影":"#FF8F00","B站影视":"#FB7299","微博影视":"#E6162D","IMDb热榜":"#F5C518"
+};
+const SAMPLE_URL = {
+  "微博热搜":"https://weibo.com","百度热搜":"https://baidu.com","知乎热榜":"https://zhihu.com","B站热搜":"https://bilibili.com","抖音热点":"https://douyin.com",
+  "虎扑热榜":"https://hupu.com","懂球帝":"https://dongqiudi.com","直播吧":"https://zhibo8.com","新浪体育":"https://sports.sina.com.cn","NGA体育":"https://nga.cn",
+  "豆瓣电影":"https://movie.douban.com","猫眼电影":"https://maoyan.com","B站影视":"https://bilibili.com","微博影视":"https://weibo.com","IMDb热榜":"https://imdb.com"
+};
+
+function defaultConfig(){
+  const mk=(name)=>({id:'s'+name, name, url:'https://'+name+'.example.com/api', iconColor:SAMPLE_ICON[name]||'#2563eb', showItems:6, listPath:'', titleField:'title', urlField:'url', headers:'', enabled:true});
+  return {
+    refreshSeconds:600,
+    groups:[
+      {id:'g1',name:'热点新闻',color:'#2563eb',order:1,cardCount:5,sources:['微博热搜','百度热搜','知乎热榜','B站热搜','抖音热点'].map(mk)},
+      {id:'g2',name:'体育',color:'#16a34a',order:2,cardCount:5,sources:['虎扑热榜','懂球帝','直播吧','新浪体育','NGA体育'].map(mk)},
+      {id:'g3',name:'影视',color:'#9333ea',order:3,cardCount:5,sources:['豆瓣电影','猫眼电影','B站影视','微博影视','IMDb热榜'].map(mk)}
+    ]
+  };
+}
+function loadConfig(){ try{ const raw=localStorage.getItem(CONFIG_KEY); return raw?JSON.parse(raw):defaultConfig(); }catch(e){ return defaultConfig(); } }
+function saveConfig(c){ localStorage.setItem(CONFIG_KEY, JSON.stringify(c)); }
+let CONFIG = loadConfig();
+
+function uid(p){ return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function setMsg(sel,text,type){ const m=document.getElementById(sel); m.className='msg '+(type||'ok'); m.textContent=text; setTimeout(()=>{m.className='msg';},3000); }
+function toast(msg){ const t=document.querySelector('.toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1800); }
+
+/* ============ 视图切换 ============ */
+function showView(v){
+  document.getElementById('view').style.display = v==='view'?'':'none';
+  document.getElementById('admin').style.display = v==='admin'?'':'none';
+  document.getElementById('navView').classList.toggle('active',v==='view');
+  document.getElementById('navAdmin').classList.toggle('active',v==='admin');
+  if(v==='view') renderBoard(); else loadAdmin();
+}
+
+/* ============ 看板渲染 ============ */
+const rankCls=i=>i===0?'r1':i===1?'r2':i===2?'r3':'r4';
+function flameIcon(){return '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s4 4.5 4 8.5a4 4 0 0 1-8 0C8 6.5 12 2 12 2z"/><path d="M12 22c4 0 6.5-2.5 6.5-6 0-2-1-4-2.5-5.5-.3 1.5-1 3-2 4 0-2.5-.8-5-2.6-7C10.4 9 9 11.6 9 13.6c0 2.5-1.6 3.4-1.6 3.4S6 16 6 16.6C6 20 8 22 12 22z"/></svg>';}
+function renderBoard(){
+  const app=document.getElementById('app');
+  CONFIG=loadConfig();
+  const groups=CONFIG.groups.slice().sort((a,b)=>(a.order||0)-(b.order||0));
+  if(!groups.length){ app.innerHTML='<div class="empty">暂无分类，请到「管理后台」新建分类和数据源。</div>'; return; }
+  app.innerHTML=groups.map(g=>{
+    const cols=Math.min(Math.max(g.cardCount||5,1),5);
+    const srcs=(g.sources||[]).filter(s=>s.enabled!==false);
+    const cards=srcs.map(s=>{
+      const items=(SAMPLE_DATA[s.name]||[]).slice(0,s.showItems||6);
+      const li=items.length?items.map((t,i)=>`<li class="item"><span class="rank ${rankCls(i)}">${i+1}</span><a href="${SAMPLE_URL[s.name]||'javascript:void(0)'}" class="demo-link" target="_blank" rel="noopener">${t}</a></li>`).join(''):'<div class="empty">暂无数据</div>';
+      return `<article class="card"><div class="card-top"><span class="src">${s.name}</span><span class="ico" style="color:${s.iconColor||g.color}">${flameIcon()}</span></div><ul class="list">${li}</ul><div class="more">TOP ${s.showItems||6}</div></article>`;
+    }).join('');
+    return `<section class="group"><div class="group-head"><span class="tag" style="background:${g.color}"></span><h2>${g.name}</h2><span class="count">${cards.length} 个数据源</span></div><div class="row" style="grid-template-columns:repeat(${cols},1fr)">${cards}</div></section>`;
+  }).join('');
+}
+document.addEventListener('click',e=>{ const a=e.target.closest('a'); if(a&&!a.href) toast('示例数据 · 数据源未提供跳转链接'); });
+
+/* ============ 后台渲染 ============ */
+function loadAdmin(){
+  CONFIG=loadConfig();
+  document.getElementById('refresh').value=CONFIG.refreshSeconds||600;
+  renderGroups();
+}
+function renderGroups(){
+  const box=document.getElementById('groups');
+  if(!CONFIG.groups||!CONFIG.groups.length){ box.innerHTML='<div class="empty">还没有分类，点击「+ 新建分类」开始。</div>'; return; }
+  box.innerHTML=CONFIG.groups.map((g,gi)=>{
+    const srcs=(g.sources||[]).map(s=>`
+      <div class="src-row"><span class="nm">${s.name}</span><span class="url" title="${s.url}">${s.url}</span><span class="meta">显示${s.showItems||6}条 · ${s.enabled===false?'停用':'启用'}</span><span class="ops">
+        <button class="btn btn-ghost btn-sm" onclick="editSource('${g.id}','${s.id}')">编辑</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteSource('${g.id}','${s.id}')">删</button></span></div>`).join('');
+    return `<div class="grp acard" style="border-left-color:${g.color}">
+      <div class="grp-head"><span class="name">${g.name}</span><span class="info">卡片 ${g.cardCount||5} 张 · ${srcs.length} 个数据源</span>
+        <button class="btn btn-ghost btn-sm" onclick="moveGroup('${g.id}','up')" ${gi===0?'disabled':''}>↑上移</button>
+        <button class="btn btn-ghost btn-sm" onclick="moveGroup('${g.id}','down')" ${gi===CONFIG.groups.length-1?'disabled':''}>↓下移</button>
+        <button class="btn btn-ghost btn-sm" onclick="openEditGroup('${g.id}')">设置</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteGroup('${g.id}')">删除</button>
+        <button class="btn btn-primary btn-sm" onclick="openSourceModal('${g.id}')">+ 添加数据源</button></div><div>${srcs}</div></div>`;
+  }).join('');
+}
+
+/* ===== 分类 ===== */
+let editGroupId=null;
+function openGroupModal(){ editGroupId=null; document.getElementById('groupModalTitle').textContent='新建分类'; document.getElementById('gName').value=''; document.getElementById('gColor').value='#2563eb'; document.getElementById('gCount').value='5'; document.getElementById('groupModal').classList.add('show'); }
+function openEditGroup(gid){ const g=CONFIG.groups.find(x=>x.id===gid); if(!g)return; editGroupId=gid; document.getElementById('groupModalTitle').textContent='编辑分类'; document.getElementById('gName').value=g.name; document.getElementById('gColor').value=g.color; document.getElementById('gCount').value=g.cardCount||5; document.getElementById('groupModal').classList.add('show'); }
+function saveGroup(){ CONFIG=loadConfig(); const nm=document.getElementById('gName').value.trim(); if(!nm){setMsg('amsg','分类名称不能为空','err');return;} if(editGroupId){ const g=CONFIG.groups.find(x=>x.id===editGroupId); if(g){ g.name=nm; g.color=document.getElementById('gColor').value; g.cardCount=Number(document.getElementById('gCount').value)||5; } } else { const max=CONFIG.groups.reduce((m,g)=>Math.max(m,g.order||0),0); CONFIG.groups.push({id:uid('g'),name:nm,color:document.getElementById('gColor').value,order:max+1,cardCount:Number(document.getElementById('gCount').value)||5,sources:[]}); } saveConfig(CONFIG); closeModal('groupModal'); setMsg('amsg','分类已保存'); loadAdmin(); }
+function moveGroup(gid,dir){ CONFIG=loadConfig(); const list=CONFIG.groups; const idx=list.findIndex(x=>x.id===gid); const t=dir==='up'?idx-1:idx+1; if(idx<0||t<0||t>=list.length)return; const tmp=list[idx];list[idx]=list[t];list[t]=tmp; list.forEach((g,i)=>g.order=i+1); saveConfig(CONFIG); loadAdmin(); }
+function deleteGroup(gid){ if(!confirm('确定删除该分类及其所有数据源？'))return; CONFIG=loadConfig(); CONFIG.groups=CONFIG.groups.filter(g=>g.id!==gid); saveConfig(CONFIG); setMsg('amsg','分类已删除'); loadAdmin(); }
+
+/* ===== 数据源 ===== */
+function openSourceModal(gid){ document.getElementById('srcModalTitle').textContent='添加数据源'; document.getElementById('sGroupId').value=gid; document.getElementById('sId').value=''; ['sName','sUrl','sPath','sHeaders'].forEach(i=>document.getElementById(i).value=''); document.getElementById('sTitle').value='title'; document.getElementById('sUrlField').value='url'; document.getElementById('sShow').value='6'; document.getElementById('sColor').value='#2563eb'; document.getElementById('srcModal').classList.add('show'); }
+function editSource(gid,sid){ const g=CONFIG.groups.find(x=>x.id===gid); const s=(g.sources||[]).find(x=>x.id===sid); if(!s)return; document.getElementById('srcModalTitle').textContent='编辑数据源'; document.getElementById('sGroupId').value=gid; document.getElementById('sId').value=sid; document.getElementById('sName').value=s.name; document.getElementById('sUrl').value=s.url; document.getElementById('sPath').value=s.listPath||''; document.getElementById('sTitle').value=s.titleField||'title'; document.getElementById('sUrlField').value=s.urlField||'url'; document.getElementById('sShow').value=s.showItems||6; document.getElementById('sColor').value=s.iconColor||'#2563eb'; document.getElementById('sHeaders').value=s.headers||''; document.getElementById('srcModal').classList.add('show'); }
+function saveSource(){ CONFIG=loadConfig(); const gid=document.getElementById('sGroupId').value; const sid=document.getElementById('sId').value; const g=CONFIG.groups.find(x=>x.id===gid); if(!g)return; const nm=document.getElementById('sName').value.trim(), url=document.getElementById('sUrl').value.trim(); if(!nm||!url){setMsg('amsg','名称和接口URL必填','err');return;} const data={name:nm,url:url,listPath:document.getElementById('sPath').value,titleField:document.getElementById('sTitle').value||'title',urlField:document.getElementById('sUrlField').value||'url',showItems:Number(document.getElementById('sShow').value)||6,iconColor:document.getElementById('sColor').value,headers:document.getElementById('sHeaders').value,enabled:true}; if(sid){ const s=g.sources.find(x=>x.id===sid); if(s)Object.assign(s,data); } else { g.sources.push(Object.assign({id:uid('s')},data)); } saveConfig(CONFIG); closeModal('srcModal'); setMsg('amsg','数据源已保存'); loadAdmin(); }
+function deleteSource(gid,sid){ if(!confirm('删除该数据源？'))return; CONFIG=loadConfig(); const g=CONFIG.groups.find(x=>x.id===gid); if(g){ g.sources=g.sources.filter(s=>s.id!==sid); } saveConfig(CONFIG); setMsg('amsg','数据源已删除'); loadAdmin(); }
+
+/* ===== 全局 ===== */
+function saveRefresh(){ CONFIG=loadConfig(); CONFIG.refreshSeconds=Number(document.getElementById('refresh').value)||600; saveConfig(CONFIG); setMsg('amsg','刷新间隔已保存'); }
+function resetDemo(){ if(!confirm('重置为示例数据？当前本地修改将丢失。'))return; localStorage.removeItem(CONFIG_KEY); CONFIG=defaultConfig(); saveConfig(CONFIG); setMsg('amsg','已重置为示例数据'); loadAdmin(); }
+
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal('groupModal'); closeModal('srcModal'); } });
+
+showView('view');
+</script>
+</body>
+</html>

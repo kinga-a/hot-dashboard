@@ -1,6 +1,7 @@
 /**
  * 看板 API：/api/board
- * 返回完整看板数据（配置 + 各数据源榜单），供前端展示页一次性渲染。
+ * 只返回看板配置（分类 + 数据源 + 刷新间隔），不含榜单数据。
+ * 数据由前端浏览器直连数据源抓取（hotboard 模式），会话缓存 + 自动刷新。
  */
 import { getKV, readConfig, CORS, json } from './lib.js';
 
@@ -10,31 +11,21 @@ export async function onRequestGet(context) {
   const refreshSeconds = config.refreshSeconds || 600;
   const now = Date.now();
 
-  // 为每个数据源读取缓存（不主动抓取，由 /api/proxy 或前端触发刷新）
   const groups = [];
   for (const g of config.groups || []) {
     const cards = [];
     for (const s of g.sources || []) {
       if (s.enabled === false) continue;
-      let data = [];
-      let updatedAt = 0;
-      if (kv) {
-        try {
-          const cachedRaw = await kv.get('cache:' + s.id);
-          if (cachedRaw) {
-            const cached = JSON.parse(cachedRaw);
-            data = cached.data || [];
-            updatedAt = cached.t || 0;
-          }
-        } catch (e) { /* ignore */ }
-      }
       cards.push({
         id: s.id,
         name: s.name,
+        url: s.url || '',
         iconColor: s.iconColor,
         showItems: s.showItems || 6,
-        updatedAt,
-        data
+        listPath: s.listPath || '',
+        titleField: s.titleField || 'title',
+        urlField: s.urlField || 'url',
+        headers: s.headers || ''
       });
     }
     groups.push({

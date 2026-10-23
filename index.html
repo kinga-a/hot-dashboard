@@ -42,18 +42,24 @@
   .row{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 16px 12px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 6px 18px rgba(16,24,40,.04);display:flex;flex-direction:column;min-width:0;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;}
   .card:hover{transform:translateY(-3px);box-shadow:0 4px 10px rgba(16,24,40,.06),0 14px 30px rgba(16,24,40,.09);border-color:#d8e0ee;}
-  .card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;}
-  .card-top .src{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;}
+  .card-top .src{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
+  .card-top .src a{color:inherit;text-decoration:none;}
+  .card-top .src a:hover{color:var(--accent);}
   .card-top .ico{flex:0 0 auto;}
   .card-top .ico svg{width:16px;height:16px;display:block;}
+  .card .ts{font-size:11px;color:#b4bcc9;margin-bottom:8px;}
+  .card .ts .err{color:#dc2626;}
   .card .list{list-style:none;display:flex;flex-direction:column;flex:1;}
   .card .item{display:flex;align-items:flex-start;gap:9px;padding:5.5px 0;border-top:1px solid #f0f2f7;font-size:13.5px;line-height:1.5;}
   .card .item:first-child{border-top:none;}
-  .card .item a{color:var(--ink);text-decoration:none;min-width:0;}
+  .card .item a{color:var(--ink);text-decoration:none;min-width:0;flex:1;}
   .card .item a:hover{color:var(--accent);}
   .rank{flex:0 0 17px;width:17px;height:17px;border-radius:4.5px;font-size:11px;font-weight:700;color:#fff;display:inline-flex;align-items:center;justify-content:center;margin-top:2px;}
   .r1{background:var(--red);}.r2{background:var(--orange);}.r3{background:var(--amber);}.r4{background:var(--gray);}
+  .item .hot{margin-left:auto;flex:0 0 auto;font-size:11px;color:var(--muted);padding-left:6px;white-space:nowrap;}
   .card .empty{color:#b4bcc9;font-size:13px;padding:16px 0;text-align:center;flex:1;}
+  .card .loading{color:#b4bcc9;font-size:13px;padding:16px 0;text-align:center;flex:1;}
   .card .more{text-align:right;font-size:11.5px;color:#b4bcc9;margin-top:10px;}
   .loading-row{color:#777;padding:24px;font-size:14px;}
   .error-row{color:#dc2626;padding:16px;font-size:13.5px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;}
@@ -82,22 +88,144 @@
   </header>
   <div class="divider"></div>
   <div id="app"><div class="loading-row">正在加载看板数据…</div></div>
-  <div class="foot">热点聚合看板 · 数据自动刷新 · 由 EdgeOne 边缘函数 + KV 驱动</div>
+  <div class="foot">热点聚合看板 · 浏览器直连数据源 · 会话缓存 · 自动刷新（参考 hotboard 架构）</div>
 </div>
 
 <script>
+/* ===== 配置：数据源直连抓取，会话缓存，自动刷新 ===== */
 const rankCls = (i) => i===0?'r1':i===1?'r2':i===2?'r3':'r4';
+const API_CODELIFE = 'https://api.codelife.cc/api/top/list';
+const CACHE_PREFIX = 'hb:';
+const CACHE_TTL = 0; // 0 表示以 refreshSeconds 为准
+
+let CONFIG = { refreshSeconds: 600, groups: [] };
+let timers = [];
+
 function flameIcon(){return '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s4 4.5 4 8.5a4 4 0 0 1-8 0C8 6.5 12 2 12 2z"/><path d="M12 22c4 0 6.5-2.5 6.5-6 0-2-1-4-2.5-5.5-.3 1.5-1 3-2 4 0-2.5-.8-5-2.6-7C10.4 9 9 11.6 9 13.6c0 2.5-1.6 3.4-1.6 3.4S6 16 6 16.6C6 20 8 22 12 22z"/></svg>';}
 
-function renderCard(card, color){
-  const items = (card.data||[]).slice(0, card.showItems || 6);
-  let li = '';
-  if (items.length) {
-    li = items.map((t,i)=>`<li class="item"><span class="rank ${rankCls(i)}">${i+1}</span><a href="${t.url||'javascript:void(0)'}" class="demo-link" target="_blank" rel="noopener" title="${t.title}">${t.title}</a></li>`).join('');
-  } else {
-    li = `<div class="empty">暂无数据</div>`;
+/* 会话缓存：先展示旧数据，后台刷新后覆盖 */
+function cacheGet(key){
+  try {
+    const raw = sessionStorage.getItem(CACHE_PREFIX + key);
+    if (raw) return JSON.parse(raw);
+  } catch(e){}
+  return null;
+}
+function cacheSet(key, val){
+  try { sessionStorage.setItem(CACHE_PREFIX + key, JSON.stringify(val)); } catch(e){}
+}
+
+/* 构造请求 URL：codelife 加 timestamp 绕过 CDN 缓存；其他接口原样 */
+function buildUrl(src){
+  let url = src.url || '';
+  if (!url) return '';
+  if (url.includes('api.codelife.cc')) {
+    url += (url.includes('?') ? '&' : '?') + 'timestamp=' + Date.now();
   }
-  return `<article class="card"><div class="card-top"><span class="src">${card.name}</span><span class="ico" style="color:${card.iconColor||color}">${flameIcon()}</span></div><ul class="list">${li}</ul><div class="more">TOP ${card.showItems||6}</div></article>`;
+  return url;
+}
+
+/* 通用解析：支持 codelife {code,data:[{title,hotValue,link}]} 与自定义字段映射 */
+function parseItems(src, data){
+  let arr = data;
+  if (src.listPath) {
+    arr = src.listPath.split('.').reduce((o,k)=> (o && o[k] !== undefined) ? o[k] : null, data);
+  } else if (Array.isArray(data)) {
+    arr = data;
+  } else if (data && Array.isArray(data.data)) {
+    arr = data.data;
+  }
+  if (!Array.isArray(arr)) arr = [];
+  const titleField = src.titleField || 'title';
+  const urlField = src.urlField || 'url';
+  return arr.map((it, idx) => ({
+    rank: it.index || (idx + 1),
+    title: it[titleField] !== undefined ? it[titleField] : (it.title || it.name || ''),
+    url: it[urlField] !== undefined ? it[urlField] : (it.link || it.url || ''),
+    hot: it.hotValue !== undefined ? it.hotValue : (it.hot || it.num || '')
+  })).filter(t => t.title);
+}
+
+/* 抓取单个数据源：先回缓存渲染，再后台刷新 */
+async function loadSource(src, el){
+  const key = src.id;
+  const cached = cacheGet(key);
+  const now = Date.now();
+  const staleMs = (CONFIG.refreshSeconds || 600) * 1000;
+
+  // 缓存未过期：直接渲染缓存，不重复请求
+  if (cached && cached.t && (now - cached.t) < staleMs) {
+    renderCard(el, src, cached.items, cached.t, null);
+    return;
+  }
+
+  // 有缓存但过期：先展示旧数据（标注抓取时间），再后台刷新
+  if (cached && cached.items) {
+    renderCard(el, src, cached.items, cached.t, null);
+  } else {
+    el.querySelector('.list').innerHTML = '<div class="loading">加载中…</div>';
+  }
+
+  try {
+    const url = buildUrl(src);
+    if (!url) throw new Error('接口 URL 为空');
+    const opt = { signal: AbortSignal.timeout(15000) };
+    if (src.headers) {
+      try { opt.headers = JSON.parse(src.headers); } catch(e){}
+    }
+    const res = await fetch(url, opt);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    const items = parseItems(src, json);
+    if (!items.length) throw new Error('解析结果为空');
+    const entry = { t: Date.now(), items };
+    cacheSet(key, entry);
+    renderCard(el, src, items, entry.t, null);
+  } catch (e) {
+    // 刷新失败：保留旧数据并标注
+    if (cached && cached.items) {
+      renderCard(el, src, cached.items, cached.t, '刷新失败，展示 ' + (CONFIG.refreshSeconds/60) + ' 分钟前数据');
+    } else {
+      renderCard(el, src, [], 0, '加载失败：' + e.message);
+    }
+  }
+}
+
+function renderCard(el, src, items, t, err){
+  const show = src.showItems || 6;
+  const list = el.querySelector('.list');
+  const tsEl = el.querySelector('.ts');
+  if (err) {
+    tsEl.innerHTML = '<span class="err">' + escapeHtml(err) + '</span>';
+  } else if (t) {
+    const d = new Date(t);
+    tsEl.textContent = '抓取于 ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0') + ':' + d.getSeconds().toString().padStart(2,'0');
+  } else {
+    tsEl.textContent = '';
+  }
+  if (!items || !items.length) {
+    list.innerHTML = '<div class="empty">暂无数据</div>';
+    return;
+  }
+  list.innerHTML = items.slice(0, show).map((t2,i)=>`
+    <li class="item">
+      <span class="rank ${rankCls(i)}">${t2.rank||i+1}</span>
+      <a href="${safeUrl(t2.url)}" target="_blank" rel="noopener" title="${escapeHtml(t2.title)}">${escapeHtml(t2.title)}</a>
+      ${t2.hot ? `<span class="hot">${escapeHtml(String(t2.hot))}</span>` : ''}
+    </li>`).join('');
+  const more = el.querySelector('.more');
+  if (more) more.textContent = items.length > show ? ('TOP ' + show + ' · 共 ' + items.length + ' 条') : ('TOP ' + Math.min(show, items.length));
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function safeUrl(u){
+  try {
+    const x = new URL(u, location.origin);
+    if (!/^https?:$/.test(x.protocol)) return '#';
+    return x.href;
+  } catch(e){ return '#'; }
 }
 
 async function loadBoard(){
@@ -107,47 +235,73 @@ async function loadBoard(){
     const res = await fetch('/api/board');
     if (!res.ok) throw new Error('API ' + res.status);
     const board = await res.json();
-    status.textContent = '已连接 · 每 ' + (board.refreshSeconds/60) + ' 分钟自动刷新';
-    if (!board.groups || !board.groups.length) {
+    CONFIG = { refreshSeconds: board.refreshSeconds || 600, groups: board.groups || [] };
+    status.textContent = '已连接 · 每 ' + (CONFIG.refreshSeconds/60) + ' 分钟自动刷新';
+    if (!CONFIG.groups.length) {
       app.innerHTML = '<div class="error-row">暂无任何分类，请先到后台「管理」添加分类和数据源。</div>';
       return;
     }
-    const html = board.groups.map(g=>{
+    // 清理旧定时器
+    timers.forEach(t=>clearInterval(t)); timers = [];
+    // 渲染骨架
+    const html = CONFIG.groups.map(g=>{
       const cols = Math.min(Math.max(g.cardCount||5,1),5);
-      const cards = g.cards||[];
+      const cards = g.cards || [];
       return `
         <section class="group">
-          <div class="group-head"><span class="tag" style="background:${g.color}"></span><h2>${g.name}</h2><span class="count">${cards.length} 个数据源</span></div>
-          <div class="row" style="grid-template-columns:repeat(${cols},1fr)">${cards.map(c=>renderCard(c,g.color)).join('')}</div>
+          <div class="group-head"><span class="tag" style="background:${g.color}"></span><h2>${escapeHtml(g.name)}</h2><span class="count">${cards.length} 个数据源</span></div>
+          <div class="row" style="grid-template-columns:repeat(${cols},1fr)">${cards.map(c=>`
+            <article class="card" data-src="${c.id}">
+              <div class="card-top">
+                <span class="src">${escapeHtml(c.name)}</span>
+                <span class="ico" style="color:${c.iconColor||g.color}">${flameIcon()}</span>
+              </div>
+              <div class="ts"></div>
+              <ul class="list"><div class="loading">加载中…</div></ul>
+              <div class="more"></div>
+            </article>`).join('')}
+          </div>
         </section>`;
     }).join('');
     app.innerHTML = html;
+
+    // 立即并行抓取全部数据源（hotboard 模式：浏览器直连）
+    const cards = app.querySelectorAll('.card');
+    const sources = [];
+    CONFIG.groups.forEach(g => (g.cards||[]).forEach(c => sources.push(c)));
+    const map = {};
+    sources.forEach(s => map[s.id] = s);
+    cards.forEach(card => {
+      const src = map[card.dataset.src];
+      if (src) loadSource(src, card);
+    });
+
+    // 自动刷新：每 refreshSeconds 轮询一次，只刷过期缓存
+    const timer = setInterval(() => {
+      CONFIG.groups.forEach(g => (g.cards||[]).forEach(s => {
+        const el = document.querySelector(`.card[data-src="${s.id}"]`);
+        if (el) loadSource(s, el);
+      }));
+    }, CONFIG.refreshSeconds * 1000);
+    timers.push(timer);
   } catch (e) {
     status.textContent = '连接失败';
-    app.innerHTML = '<div class="error-row">加载失败：' + e.message + '（请确认已部署边缘函数并绑定 KV）</div>';
+    app.innerHTML = '<div class="error-row">加载失败：' + escapeHtml(e.message) + '（请确认已部署边缘函数并绑定 KV）</div>';
   }
 }
 
-// 点击卡片链接提示（无真实跳转的示例）
+// toast 提示（示例链接等）
 (function(){
   const t=document.createElement('div');t.className='toast';document.body.appendChild(t);
   let timer;
   function show(msg){t.textContent=msg;t.classList.add('show');clearTimeout(timer);timer=setTimeout(()=>t.classList.remove('show'),1800);}
   document.addEventListener('click',e=>{
     const a=e.target.closest('a');
-    if(a && !a.href) show('示例数据 · 数据源未提供跳转链接');
+    if(a && (!a.href || a.href==='#')) { e.preventDefault(); show('该条目暂无跳转链接'); }
   });
 })();
 
 loadBoard();
-// 定时自动刷新（按刷新间隔轮询）
-async function schedule(){
-  try {
-    const res = await fetch('/api/board');
-    if (res.ok) { const b = await res.json(); setTimeout(loadBoard, (b.refreshSeconds||600)*1000); }
-  } catch(e){ setTimeout(loadBoard, 120000); }
-}
-setInterval(schedule, 60000);
 </script>
 </body>
 </html>
