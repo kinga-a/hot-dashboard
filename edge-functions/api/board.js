@@ -29,7 +29,8 @@ export async function onRequestGet(context) {
         // 行情源专属字段（腾讯行情卡）
         type: s.type || '',
         symbols: s.symbols || [],
-        names: s.names || []
+        names: s.names || [],
+        note: s.note || ''
       });
     }
     groups.push({

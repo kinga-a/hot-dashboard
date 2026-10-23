@@ -362,7 +362,7 @@ function renderCard(el, src, items, t, err){
       <span class="q-chg ${up?'up':'down'}">${up?'+':''}${fmtQuote(t2.change)} ${t2.pct>=0?'+':''}${(!isNaN(t2.pct)?t2.pct.toFixed(2):'—')}%</span>
     </li>`;}).join('');
     const more = el.querySelector('.more');
-    if (more) more.textContent = 'TOP ' + items.length + ' · 实时行情';
+    if (more) more.textContent = src.note || ('TOP ' + items.length + ' · 实时行情');
     return;
   }
   // 全部条目渲染，超出 showItems 的加 .x 类，由 .expanded 控制显隐

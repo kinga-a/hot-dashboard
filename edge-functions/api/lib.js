@@ -33,7 +33,7 @@ function src(id, name, color, showItems = 6) {
 }
 
 // 行情源构造器（腾讯行情接口 qt.gtimg.cn：CORS 开放、浏览器可直连；指数类 ~ 分隔、外盘类 , 分隔，GBK 编码）
-function quote(id, name, color, symbols, names) {
+function quote(id, name, color, symbols, names, note) {
   return {
     id,
     name,
@@ -43,6 +43,7 @@ function quote(id, name, color, symbols, names) {
     type: 'quote',
     symbols,
     names,
+    note: note || '',
     enabled: true
   };
 }
@@ -64,7 +65,7 @@ const DEFAULT_CONFIG = {
           ['伦敦金', '伦敦银', '纽约黄金', '纽约白银', '布伦特原油']),
         quote('qt-cn-gold', '国内金价', '#eab308',
           ['sh518880', 'sh518800', 'sz159937', 'sz159934'],
-          ['黄金ETF·华安', '黄金ETF·国泰', '黄金ETF·博时', '黄金ETF·易方达'])
+          ['黄金ETF·华安', '黄金ETF·国泰', '黄金ETF·博时', '黄金ETF·易方达'], '黄金ETF · 元/份')
       ]
     },
     {
