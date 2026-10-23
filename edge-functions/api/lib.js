@@ -85,7 +85,7 @@ const DEFAULT_CONFIG = {
   refreshSeconds: 600,
   groups: [
     {
-      id: 'gfinance', name: '财经行情', color: '#d97706', order: 1, cardCount: 5,
+      id: 'gfinance', name: '财经行情', color: '#d97706', order: 1, cardCount: 6,
       sources: [
         quote('qt-index', '全球指数', '#2563eb',
           ['sh000001', 'sz399001', 'sh000300', 'hkHSI', 'usNDX', 'usDJI', 'usINX'],
@@ -99,6 +99,7 @@ const DEFAULT_CONFIG = {
         quote('qt-cn-gold', '国内金价', '#eab308',
           ['sh518880', 'sh518800', 'sz159937', 'sz159934'],
           ['黄金ETF·华安', '黄金ETF·国泰', '黄金ETF·博时', '黄金ETF·易方达'], '黄金ETF · 元/份'),
+        page('hb-ruseo-gold', '国内金价·元/克', '#d97706', 'https://api.ruseo.cn/api/goldprice', 12),
         fxQuote('qt-fx', '主要汇率', '#0ea5e9',
           ['USD', 'EUR', 'GBP', 'JPY', 'HKD', 'AUD'],
           ['美元/人民币', '欧元/人民币', '英镑/人民币', '日元/人民币', '港币/人民币', '澳元/人民币'])

@@ -55,9 +55,30 @@ async function doubanMovie() {
   }));
 }
 
+/* 国内金价·元/克：ruseo.cn 今日金价（CORS 开放但结构多段，统一解析）；银行金条价 + 品牌贵金属价 + 回收价 */
+async function ruseoGold() {
+  const txt = await fetchText('https://api.ruseo.cn/api/goldprice');
+  const j = JSON.parse(txt);
+  const d = (j && j.data) || {};
+  const out = [];
+  (d.bank_gold_bar_price || []).forEach((b) => {
+    out.push({ title: (b.bank || '') + ' · 金条', hot: b.price ? b.price + ' 元/克' : '', link: '' });
+  });
+  (d.precious_metal_price || []).slice(0, 6).forEach((p) => {
+    if (!p.gold_price) return;
+    out.push({ title: (p.brand || '') + ' · 黄金', hot: p.gold_price + ' 元/克', link: '' });
+  });
+  (d.gold_recycle_price || []).slice(0, 5).forEach((r) => {
+    if (!r.recycle_price) return;
+    out.push({ title: (r.gold_type || '') + ' · 回收', hot: r.recycle_price + ' 元/克', link: '' });
+  });
+  return out;
+}
+
 const PARSERS = {
   'hb-redfruit': redfruit,
-  'hb-douban-movie': doubanMovie
+  'hb-douban-movie': doubanMovie,
+  'hb-ruseo-gold': ruseoGold
 };
 
 export async function onRequestGet(context) {
