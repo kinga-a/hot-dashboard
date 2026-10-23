@@ -1,0 +1,10 @@
+{
+  "$schema": "https://edgeone.ai/pages/schema/edgeone.json",
+  "functions": [
+    {
+      "name": "hot-dashboard-api",
+      "path": "/api/*",
+      "handler": "edge-functions/api"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+node_modules/
+_shots/
+.tmp-tool-results/
+*.log

@@ -1,0 +1,9 @@
+{
+  "name": "hot-dashboard",
+  "version": "1.0.0",
+  "description": "热点聚合看板 - EdgeOne 全栈应用（分类管理 / 排序 / 卡片数 / 接口配置 / 自动刷新）",
+  "scripts": {
+    "dev": "edgeone pages dev"
+  },
+  "dependencies": {}
+}

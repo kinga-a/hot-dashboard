@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>热点聚合看板</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232563eb'/%3E%3Cpath d='M9 18l5-7 4 5 5-7' stroke='white' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<style>
+  :root{
+    --bg:#f2f4f8;--card:#fff;--ink:#1c2333;--muted:#7b8496;--line:#e5e9f0;
+    --accent:#2563eb;--red:#ef4444;--orange:#f97316;--amber:#eab308;--gray:#9aa3b2;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:"PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+    background:var(--bg);
+    background-image:
+      radial-gradient(circle at 18% 6%, rgba(37,99,235,.08), transparent 38%),
+      radial-gradient(circle at 86% 12%, rgba(16,185,129,.07), transparent 34%),
+      linear-gradient(#e7ebf2 1px, transparent 1px),
+      linear-gradient(90deg, #e7ebf2 1px, transparent 1px);
+    background-size:auto,auto,26px 26px,26px 26px;
+    color:var(--ink);min-height:100vh;padding:28px 24px 48px;
+  }
+  .wrap{max-width:1280px;margin:0 auto;}
+  .masthead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:8px;flex-wrap:wrap;}
+  .masthead h1{font-size:26px;font-weight:800;letter-spacing:.5px;display:flex;align-items:center;gap:12px;}
+  .masthead h1 .logo{width:38px;height:38px;border-radius:11px;flex:0 0 38px;background:linear-gradient(135deg,#2563eb,#4f46e5);display:grid;place-items:center;box-shadow:0 6px 16px rgba(37,99,235,.28);}
+  .masthead h1 .logo svg{width:22px;height:22px;}
+  .masthead .sub{color:var(--muted);font-size:13.5px;margin-top:6px;line-height:1.6;}
+  .pill{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:12.5px;color:var(--muted);box-shadow:0 1px 3px rgba(16,24,40,.05);}
+  .pill .dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18);}
+  .admin-link{margin-left:8px;font-size:12.5px;color:var(--accent);text-decoration:none;font-weight:600;}
+  .admin-link:hover{text-decoration:underline;}
+  .divider{height:1px;background:var(--line);margin:22px 0 6px;}
+
+  .group{margin-top:34px;}
+  .group-head{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .group-head .tag{width:5px;height:20px;border-radius:3px;}
+  .group-head h2{font-size:19px;font-weight:700;}
+  .group-head .count{font-size:12.5px;color:var(--muted);margin-left:auto;}
+  .row{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 16px 12px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 6px 18px rgba(16,24,40,.04);display:flex;flex-direction:column;min-width:0;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;}
+  .card:hover{transform:translateY(-3px);box-shadow:0 4px 10px rgba(16,24,40,.06),0 14px 30px rgba(16,24,40,.09);border-color:#d8e0ee;}
+  .card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;}
+  .card-top .src{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .card-top .ico{flex:0 0 auto;}
+  .card-top .ico svg{width:16px;height:16px;display:block;}
+  .card .list{list-style:none;display:flex;flex-direction:column;flex:1;}
+  .card .item{display:flex;align-items:flex-start;gap:9px;padding:5.5px 0;border-top:1px solid #f0f2f7;font-size:13.5px;line-height:1.5;}
+  .card .item:first-child{border-top:none;}
+  .card .item a{color:var(--ink);text-decoration:none;min-width:0;}
+  .card .item a:hover{color:var(--accent);}
+  .rank{flex:0 0 17px;width:17px;height:17px;border-radius:4.5px;font-size:11px;font-weight:700;color:#fff;display:inline-flex;align-items:center;justify-content:center;margin-top:2px;}
+  .r1{background:var(--red);}.r2{background:var(--orange);}.r3{background:var(--amber);}.r4{background:var(--gray);}
+  .card .empty{color:#b4bcc9;font-size:13px;padding:16px 0;text-align:center;flex:1;}
+  .card .more{text-align:right;font-size:11.5px;color:#b4bcc9;margin-top:10px;}
+  .loading-row{color:#777;padding:24px;font-size:14px;}
+  .error-row{color:#dc2626;padding:16px;font-size:13.5px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;}
+  .foot{text-align:center;color:#a6aebb;font-size:12px;margin-top:44px;line-height:1.7;}
+  .toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(16px);background:#1c2333;color:#fff;font-size:13px;padding:10px 18px;border-radius:10px;box-shadow:0 8px 24px rgba(16,24,40,.22);opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;z-index:99;max-width:80vw;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:1080px){
+    .row{grid-template-columns:repeat(5,minmax(250px,1fr));overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:8px;}
+    .card{scroll-snap-align:start;}
+  }
+  @media (max-width:640px){body{padding:20px 16px 40px;}.masthead h1{font-size:22px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <h1>
+        <span class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M4 17l6-8 5 6 5-7" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        热点聚合看板
+      </h1>
+      <div class="sub">全网热搜 · 体育赛事 · 影视动态 · 每日资讯 一站式预览</div>
+    </div>
+    <div class="pill"><span class="dot"></span><span id="status">加载中…</span><a class="admin-link" href="/admin.html">管理</a></div>
+  </header>
+  <div class="divider"></div>
+  <div id="app"><div class="loading-row">正在加载看板数据…</div></div>
+  <div class="foot">热点聚合看板 · 数据自动刷新 · 由 EdgeOne 边缘函数 + KV 驱动</div>
+</div>
+
+<script>
+const rankCls = (i) => i===0?'r1':i===1?'r2':i===2?'r3':'r4';
+function flameIcon(){return '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s4 4.5 4 8.5a4 4 0 0 1-8 0C8 6.5 12 2 12 2z"/><path d="M12 22c4 0 6.5-2.5 6.5-6 0-2-1-4-2.5-5.5-.3 1.5-1 3-2 4 0-2.5-.8-5-2.6-7C10.4 9 9 11.6 9 13.6c0 2.5-1.6 3.4-1.6 3.4S6 16 6 16.6C6 20 8 22 12 22z"/></svg>';}
+
+function renderCard(card, color){
+  const items = (card.data||[]).slice(0, card.showItems || 6);
+  let li = '';
+  if (items.length) {
+    li = items.map((t,i)=>`<li class="item"><span class="rank ${rankCls(i)}">${i+1}</span><a href="${t.url||'javascript:void(0)'}" class="demo-link" target="_blank" rel="noopener" title="${t.title}">${t.title}</a></li>`).join('');
+  } else {
+    li = `<div class="empty">暂无数据</div>`;
+  }
+  return `<article class="card"><div class="card-top"><span class="src">${card.name}</span><span class="ico" style="color:${card.iconColor||color}">${flameIcon()}</span></div><ul class="list">${li}</ul><div class="more">TOP ${card.showItems||6}</div></article>`;
+}
+
+async function loadBoard(){
+  const app = document.getElementById('app');
+  const status = document.getElementById('status');
+  try {
+    const res = await fetch('/api/board');
+    if (!res.ok) throw new Error('API ' + res.status);
+    const board = await res.json();
+    status.textContent = '已连接 · 每 ' + (board.refreshSeconds/60) + ' 分钟自动刷新';
+    if (!board.groups || !board.groups.length) {
+      app.innerHTML = '<div class="error-row">暂无任何分类，请先到后台「管理」添加分类和数据源。</div>';
+      return;
+    }
+    const html = board.groups.map(g=>{
+      const cols = Math.min(Math.max(g.cardCount||5,1),5);
+      const cards = g.cards||[];
+      return `
+        <section class="group">
+          <div class="group-head"><span class="tag" style="background:${g.color}"></span><h2>${g.name}</h2><span class="count">${cards.length} 个数据源</span></div>
+          <div class="row" style="grid-template-columns:repeat(${cols},1fr)">${cards.map(c=>renderCard(c,g.color)).join('')}</div>
+        </section>`;
+    }).join('');
+    app.innerHTML = html;
+  } catch (e) {
+    status.textContent = '连接失败';
+    app.innerHTML = '<div class="error-row">加载失败：' + e.message + '（请确认已部署边缘函数并绑定 KV）</div>';
+  }
+}
+
+// 点击卡片链接提示（无真实跳转的示例）
+(function(){
+  const t=document.createElement('div');t.className='toast';document.body.appendChild(t);
+  let timer;
+  function show(msg){t.textContent=msg;t.classList.add('show');clearTimeout(timer);timer=setTimeout(()=>t.classList.remove('show'),1800);}
+  document.addEventListener('click',e=>{
+    const a=e.target.closest('a');
+    if(a && !a.href) show('示例数据 · 数据源未提供跳转链接');
+  });
+})();
+
+loadBoard();
+// 定时自动刷新（按刷新间隔轮询）
+async function schedule(){
+  try {
+    const res = await fetch('/api/board');
+    if (res.ok) { const b = await res.json(); setTimeout(loadBoard, (b.refreshSeconds||600)*1000); }
+  } catch(e){ setTimeout(loadBoard, 120000); }
+}
+setInterval(schedule, 60000);
+</script>
+</body>
+</html>
