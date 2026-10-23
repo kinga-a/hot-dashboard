@@ -38,8 +38,8 @@
   .search .s-box{display:flex;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:0 8px 0 13px;height:38px;width:250px;gap:8px;box-shadow:0 1px 3px rgba(16,24,40,.05);transition:border-color .15s,box-shadow .15s;}
   .search .s-box:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.12);}
   .search .s-box svg{width:15px;height:15px;color:#9aa3b2;flex:0 0 auto;}
-  .search input{border:none;outline:none;font-size:13px;width:100%;background:transparent;color:var(--ink);}
-  .search input::placeholder{color:#b4bcc9;}
+  .search input{border:none;outline:none;font-size:16px;width:100%;background:transparent;color:var(--ink);} /* 16px 避免 iOS Safari 聚焦自动放大 */
+  .search input::placeholder{color:#b4bcc9;font-size:13px;}
   .search .s-clear{border:none;background:#eef2f8;color:#7b8496;width:20px;height:20px;border-radius:50%;font-size:13px;line-height:1;cursor:pointer;display:none;place-items:center;flex:0 0 auto;}
   .search .s-clear.show{display:grid;}
   .search .s-clear:hover{background:#e2e8f2;color:var(--ink);}
@@ -61,8 +61,7 @@
   .group-head .tag{width:5px;height:20px;border-radius:3px;}
   .group-head h2{font-size:19px;font-weight:700;}
   .group-head .count{font-size:12.5px;color:var(--muted);margin-left:auto;}
-  .group-head .gcollapse{border:none;background:transparent;color:#9aa3b2;cursor:pointer;font-size:13px;line-height:1;width:26px;height:26px;border-radius:7px;display:grid;place-items:center;transition:background .15s,color .15s;}
-  .group-head .gcollapse:hover{background:#eef2f8;color:var(--ink);}
+  .group-head .gcollapse{width:26px;height:26px;}
   /* 分类折叠：collapsed 时隐藏整行卡片 */
   .group.collapsed .row{display:none;}
   .group.collapsed .group-head{margin-bottom:0;}
@@ -74,8 +73,18 @@
   .card-top .src a{color:inherit;text-decoration:none;}
   .card-top .src a:hover{color:var(--accent);}
   .card-top .acts{display:flex;align-items:center;gap:2px;flex:0 0 auto;}
-  .card-top .expand{border:none;background:transparent;color:#9aa3b2;cursor:pointer;font-size:12px;line-height:1;width:22px;height:22px;border-radius:6px;display:grid;place-items:center;transition:background .15s,color .15s;}
-  .card-top .expand:hover{background:#eef2f8;color:var(--ink);}
+  /* ===== 图标按钮（展开/折叠）===== */
+  .icon-btn{display:grid;place-items:center;border:none;background:transparent;color:#9aa3b2;cursor:pointer;border-radius:8px;transition:background .15s,color .15s;}
+  .icon-btn:hover{background:#eef2f8;color:var(--ink);}
+  .icon-btn .chev{display:inline-flex;transition:transform .22s ease;}
+  .icon-btn svg{width:14px;height:14px;}
+  .card-top .expand{width:24px;height:24px;}
+  .group-head .gcollapse{width:26px;height:26px;}
+  /* 卡片：默认向下(可展开)，展开后旋转朝上(可收起) */
+  .card.expanded .expand .chev{transform:rotate(180deg);}
+  /* 分类：默认朝上(可收起)，折叠后朝下(可展开) */
+  .gcollapse .chev{transform:rotate(180deg);}
+  .group.collapsed .gcollapse .chev{transform:rotate(0);}
   .card-top .ico{flex:0 0 auto;}
   .card-top .ico svg{width:16px;height:16px;display:block;}
   .card .ts{font-size:11px;color:#b4bcc9;margin-bottom:8px;}
@@ -258,7 +267,6 @@ function renderCard(el, src, items, t, err){
   const btn = el.querySelector('.expand');
   const expanded = el.classList.contains('expanded');
   if (btn) {
-    btn.textContent = expanded ? '▴' : '▾';
     btn.title = expanded ? '收起' : '展开全部';
     btn.style.display = (items && items.length > show) ? '' : 'none';
   }
@@ -323,13 +331,13 @@ async function loadBoard(){
       const cards = g.cards || [];
       return `
         <section class="group">
-          <div class="group-head"><span class="tag" style="background:${g.color}"></span><h2>${escapeHtml(g.name)}</h2><span class="count">${cards.length} 个数据源</span><button class="gcollapse" type="button" title="折叠分类" aria-label="折叠或展开分类">▴</button></div>
+          <div class="group-head"><span class="tag" style="background:${g.color}"></span><h2>${escapeHtml(g.name)}</h2><span class="count">${cards.length} 个数据源</span><button class="gcollapse icon-btn" type="button" title="折叠分类" aria-label="折叠或展开分类"><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button></div>
           <div class="row" style="grid-template-columns:repeat(${cols},1fr)">${cards.map(c=>`
             <article class="card" data-src="${c.id}" data-show-items="${c.showItems||6}">
               <div class="card-top">
                 <span class="src">${escapeHtml(c.name)}</span>
                 <span class="acts">
-                  <button class="expand" type="button" title="展开全部" aria-label="展开或收起">▾</button>
+                  <button class="expand icon-btn" type="button" title="展开全部" aria-label="展开或收起"><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button>
                   <span class="ico" style="color:${c.iconColor||g.color}">${flameIcon()}</span>
                 </span>
               </div>
@@ -379,7 +387,6 @@ async function loadBoard(){
       const group = gb.closest('.group');
       if (!group) return;
       group.classList.toggle('collapsed');
-      gb.textContent = group.classList.contains('collapsed') ? '▾' : '▴';
       gb.title = group.classList.contains('collapsed') ? '展开分类' : '折叠分类';
       return;
     }
@@ -389,7 +396,6 @@ async function loadBoard(){
       if (!card) return;
       card.classList.toggle('expanded');
       const exp = card.classList.contains('expanded');
-      btn.textContent = exp ? '▴' : '▾';
       btn.title = exp ? '收起' : '展开全部';
       const more = card.querySelector('.more');
       const n = card.querySelectorAll('.item').length;
