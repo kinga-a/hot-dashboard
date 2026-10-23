@@ -51,14 +51,20 @@ const DEFAULT_CONFIG = {
   refreshSeconds: 600,
   groups: [
     {
-      id: 'gfinance', name: '财经行情', color: '#d97706', order: 1, cardCount: 2,
+      id: 'gfinance', name: '财经行情', color: '#d97706', order: 1, cardCount: 4,
       sources: [
         quote('qt-index', '全球指数', '#2563eb',
           ['sh000001', 'sz399001', 'sh000300', 'hkHSI', 'usNDX', 'usDJI', 'usINX'],
           ['上证指数', '深证成指', '沪深300', '恒生指数', '纳斯达克100', '道琼斯', '标普500']),
+        quote('qt-us-stock', '热门美股', '#3b82f6',
+          ['usAAPL', 'usGOOG', 'usMSFT', 'usNVDA', 'usTSLA', 'usJD', 'usBABA', 'usPDD'],
+          ['苹果', '谷歌', '微软', '英伟达', '特斯拉', '京东', '阿里巴巴', '拼多多']),
         quote('qt-gold', '贵金属大宗', '#d97706',
           ['hf_XAU', 'hf_XAG', 'hf_GC', 'hf_SI', 'hf_OIL'],
-          ['伦敦金', '伦敦银', '纽约黄金', '纽约白银', '布伦特原油'])
+          ['伦敦金', '伦敦银', '纽约黄金', '纽约白银', '布伦特原油']),
+        quote('qt-cn-gold', '国内金价', '#eab308',
+          ['sh518880', 'sh518800', 'sz159937', 'sz159934'],
+          ['黄金ETF·华安', '黄金ETF·国泰', '黄金ETF·博时', '黄金ETF·易方达'])
       ]
     },
     {
