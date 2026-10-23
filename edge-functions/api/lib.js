@@ -32,11 +32,37 @@ function src(id, name, color, showItems = 6) {
   };
 }
 
+// 行情源构造器（腾讯行情接口 qt.gtimg.cn：CORS 开放、浏览器可直连；指数类 ~ 分隔、外盘类 , 分隔，GBK 编码）
+function quote(id, name, color, symbols, names) {
+  return {
+    id,
+    name,
+    url: 'https://qt.gtimg.cn/q=' + symbols.join(','),
+    iconColor: color,
+    showItems: symbols.length,
+    type: 'quote',
+    symbols,
+    names,
+    enabled: true
+  };
+}
+
 const DEFAULT_CONFIG = {
   refreshSeconds: 600,
   groups: [
     {
-      id: 'ghot', name: '综合热搜', color: '#e6162d', order: 1, cardCount: 5,
+      id: 'gfinance', name: '财经行情', color: '#d97706', order: 1, cardCount: 2,
+      sources: [
+        quote('qt-index', '全球指数', '#2563eb',
+          ['sh000001', 'sz399001', 'sh000300', 'hkHSI', 'usNDX', 'usDJI', 'usINX'],
+          ['上证指数', '深证成指', '沪深300', '恒生指数', '纳斯达克100', '道琼斯', '标普500']),
+        quote('qt-gold', '贵金属大宗', '#d97706',
+          ['hf_XAU', 'hf_XAG', 'hf_GC', 'hf_SI', 'hf_OIL'],
+          ['伦敦金', '伦敦银', '纽约黄金', '纽约白银', '布伦特原油'])
+      ]
+    },
+    {
+      id: 'ghot', name: '综合热搜', color: '#e6162d', order: 2, cardCount: 5,
       sources: [
         src('KqndgxeLl9', '微博热搜', '#e6162d'),
         src('mproPpoq6O', '知乎热榜', '#0084ff'),
@@ -46,7 +72,7 @@ const DEFAULT_CONFIG = {
       ]
     },
     {
-      id: 'gtech', name: '科技开发', color: '#2563eb', order: 2, cardCount: 5,
+      id: 'gtech', name: '科技开发', color: '#2563eb', order: 3, cardCount: 5,
       sources: [
         src('rYqoXQ8vOD', 'GitHub 热榜', '#24292f'),
         src('QaqeEaVe9R', '掘金热榜', '#1e80ff'),
@@ -56,7 +82,7 @@ const DEFAULT_CONFIG = {
       ]
     },
     {
-      id: 'gglobal', name: '海外视野', color: '#0f9d58', order: 3, cardCount: 5,
+      id: 'gglobal', name: '海外视野', color: '#0f9d58', order: 4, cardCount: 5,
       sources: [
         src('LBwdG0jePx', 'Product Hunt', '#da552f'),
         src('12owgX0oNV', '腾讯新闻', '#256eb3'),
@@ -66,7 +92,7 @@ const DEFAULT_CONFIG = {
       ]
     },
     {
-      id: 'gnews', name: '新闻资讯', color: '#f97316', order: 4, cardCount: 5,
+      id: 'gnews', name: '新闻资讯', color: '#f97316', order: 5, cardCount: 5,
       sources: [
         src('74KvxwokxM', 'B站热门', '#fb7299'),
         src('DpQvNABoNE', '抖音热榜', '#f2f5f8'),
@@ -76,7 +102,7 @@ const DEFAULT_CONFIG = {
       ]
     },
     {
-      id: 'gfun', name: '影音娱乐', color: '#8b5cf6', order: 5, cardCount: 5,
+      id: 'gfun', name: '影音娱乐', color: '#8b5cf6', order: 6, cardCount: 5,
       sources: [
         src('9JndkpJe3V', '猫眼电影', '#ff4d00'),
         src('VaobbkqoAj', 'IMDb Top', '#e2b616'),

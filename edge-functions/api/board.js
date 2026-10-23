@@ -25,7 +25,11 @@ export async function onRequestGet(context) {
         listPath: s.listPath || '',
         titleField: s.titleField || 'title',
         urlField: s.urlField || 'url',
-        headers: s.headers || ''
+        headers: s.headers || '',
+        // 行情源专属字段（腾讯行情卡）
+        type: s.type || '',
+        symbols: s.symbols || [],
+        names: s.names || []
       });
     }
     groups.push({

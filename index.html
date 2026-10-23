@@ -12,6 +12,7 @@
   :root{
     --bg:#f2f4f8;--card:#fff;--ink:#1c2333;--muted:#7b8496;--line:#e5e9f0;
     --accent:#2563eb;--red:#ef4444;--orange:#f97316;--amber:#eab308;--gray:#9aa3b2;
+    --up:#dc2626;--down:#16a34a;
     --ease-out:cubic-bezier(.22,1,.36,1);--ease-in-out:cubic-bezier(.65,.05,.36,1);
     --dur-fast:.15s;--dur-base:.28s;
   }
@@ -102,6 +103,12 @@
   .card .item{display:flex;align-items:flex-start;gap:9px;padding:6px 7px;margin:1px -7px;border-radius:8px;border-top:1px solid #f0f2f7;font-size:13.5px;line-height:1.5;transition:background var(--dur-fast) ease;}
   .card .item:hover{background:#f6f8fc;}
   .card .item:first-child{border-top:none;}
+  /* 行情行：名称 + 点位 + 涨跌（红涨绿跌，国内习惯） */
+  .item.q{align-items:center;gap:8px;}
+  .item.q a{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .q-num{font-size:13px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .q-chg{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .q-chg.up{color:var(--up);}.q-chg.down{color:var(--down);}
   /* 折叠：超出 showItems 的条目默认隐藏，卡片 expanded 时显示 */
   .card .item.x{display:none;}
   .card.expanded .item.x{display:flex;}
@@ -180,6 +187,7 @@ const BOARD_DATA = {}; // id -> {src, items}，供搜索使用
 function storeData(src, items){ if (items && items.length) BOARD_DATA[src.id] = { src, items }; }
 
 function flameIcon(){return '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s4 4.5 4 8.5a4 4 0 0 1-8 0C8 6.5 12 2 12 2z"/><path d="M12 22c4 0 6.5-2.5 6.5-6 0-2-1-4-2.5-5.5-.3 1.5-1 3-2 4 0-2.5-.8-5-2.6-7C10.4 9 9 11.6 9 13.6c0 2.5-1.6 3.4-1.6 3.4S6 16 6 16.6C6 20 8 22 12 22z"/></svg>';}
+function quoteIcon(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17.5l5.5-6 4 3.5 6.5-8.5"/><path d="M15 6.5h4.5V11"/></svg>';}
 
 /* 会话缓存：先展示旧数据，后台刷新后覆盖 */
 function cacheGet(key){
@@ -224,6 +232,46 @@ function parseItems(src, data){
   })).filter(t => t.title);
 }
 
+/* 腾讯行情解析：返回 v_code="字段~或," 行；指数 ~ 分隔、外盘 , 分隔；GBK 已由调用方解码 */
+function parseQuoteResponse(text, src){
+  const out = [];
+  const seg = text.split(';');
+  for (const line of seg) {
+    const m = line.match(/v_([^=]+)="([^"]*)"/);
+    if (!m) continue;
+    const code = m[1], raw = m[2];
+    if (!raw) continue;
+    let f, name, price, prev, change, pct;
+    if (raw.includes('~')) {
+      f = raw.split('~');
+      name = f[1] || '';
+      price = parseFloat(f[3]);
+      prev = parseFloat(f[4]);
+      change = parseFloat(f[31]);
+      pct = parseFloat(f[32]);
+    } else {
+      f = raw.split(',');
+      name = f[13] || '';
+      price = parseFloat(f[0]);
+      prev = parseFloat(f[7]);
+      change = price - prev;
+      pct = parseFloat(f[1]);
+    }
+    if (!name || isNaN(price)) continue;
+    const idx = (src.symbols || []).indexOf(code);
+    const title = (src.names && src.names[idx]) || name;
+    out.push({ rank: idx + 1, title, price, change, pct, url: 'https://gu.qq.com/' + code });
+  }
+  return out;
+}
+
+function fmtQuote(n){
+  if (isNaN(n)) return '—';
+  const abs = Math.abs(n);
+  if (abs >= 100000) return (n/10000).toFixed(1) + '万';
+  return n.toFixed(2);
+}
+
 /* 抓取单个数据源：先回缓存渲染，再后台刷新 */
 async function loadSource(src, el){
   const key = src.id;
@@ -255,8 +303,17 @@ async function loadSource(src, el){
     }
     const res = await fetch(url, opt);
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const json = await res.json();
-    const items = parseItems(src, json);
+
+    let items;
+    if (src.type === 'quote') {
+      // 行情接口：GBK 编码，需解码后按腾讯格式解析
+      const buf = await res.arrayBuffer();
+      const text = new TextDecoder('gbk').decode(buf);
+      items = parseQuoteResponse(text, src);
+    } else {
+      const json = await res.json();
+      items = parseItems(src, json);
+    }
     if (!items.length) throw new Error('解析结果为空');
     const entry = { t: Date.now(), items };
     cacheSet(key, entry);
@@ -292,6 +349,20 @@ function renderCard(el, src, items, t, err){
   }
   if (!items || !items.length) {
     list.innerHTML = '<div class="empty">暂无数据</div>';
+    return;
+  }
+  // 行情卡片：名称 + 点位 + 涨跌（红涨绿跌）
+  if (src.type === 'quote') {
+    list.innerHTML = items.map(t2=>{
+      const up = t2.change >= 0;
+      return `
+    <li class="item q">
+      <a href="${safeUrl(t2.url)}" target="_blank" rel="noopener" title="${escapeHtml(t2.title)}">${escapeHtml(t2.title)}</a>
+      <span class="q-num">${fmtQuote(t2.price)}</span>
+      <span class="q-chg ${up?'up':'down'}">${up?'+':''}${fmtQuote(t2.change)} ${t2.pct>=0?'+':''}${(!isNaN(t2.pct)?t2.pct.toFixed(2):'—')}%</span>
+    </li>`;}).join('');
+    const more = el.querySelector('.more');
+    if (more) more.textContent = 'TOP ' + items.length + ' · 实时行情';
     return;
   }
   // 全部条目渲染，超出 showItems 的加 .x 类，由 .expanded 控制显隐
@@ -350,7 +421,7 @@ async function loadBoard(){
                 <span class="src">${escapeHtml(c.name)}</span>
                 <span class="acts">
                   <button class="expand icon-btn" type="button" title="展开全部" aria-label="展开或收起"><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button>
-                  <span class="ico" style="color:${c.iconColor||g.color}">${flameIcon()}</span>
+                  <span class="ico" style="color:${c.iconColor||g.color}">${c.type==='quote'?quoteIcon():flameIcon()}</span>
                 </span>
               </div>
               <div class="ts"></div>
