@@ -322,33 +322,41 @@ async function loadSource(src, el){
   }
 
   try {
-    const url = buildUrl(src);
-    if (!url) throw new Error('接口 URL 为空');
     const opt = { signal: AbortSignal.timeout(15000) };
     if (src.headers) {
       try { opt.headers = JSON.parse(src.headers); } catch(e){}
     }
-    const res = await fetch(url, opt);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
 
     let items;
-    if (src.type === 'quote') {
-      // 行情接口：GBK 编码，需解码后按腾讯格式解析
-      const buf = await res.arrayBuffer();
-      const text = new TextDecoder('gbk').decode(buf);
-      items = parseQuoteResponse(text, src);
-    } else if (src.type === 'fx') {
-      // 汇率接口：frankfurter 7 日序列（ECB 中间价，基准 USD），最近交易日环比算涨跌
-      const d = new Date();
-      d.setDate(d.getDate() - 7);
-      const sd = d.toISOString().slice(0, 10);
-      const to = 'CNY,' + (src.symbols || []).filter(c => c !== 'USD').join(',');
-      const ser = await fetch('https://api.frankfurter.dev/v1/' + sd + '..?from=USD&to=' + to, opt);
-      const sj = await ser.json();
-      items = parseFx(sj, src);
+    if (src.type === 'page') {
+      // 服务端代理源：后端抓取无 CORS 页面/接口并解析（同源 /api/proxy）
+      const pr = await fetch('/api/proxy?id=' + encodeURIComponent(src.id), opt);
+      const pj = await pr.json();
+      items = parseItems(src, pj);
     } else {
-      const json = await res.json();
-      items = parseItems(src, json);
+      const url = buildUrl(src);
+      if (!url) throw new Error('接口 URL 为空');
+      const res = await fetch(url, opt);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      if (src.type === 'quote') {
+        // 行情接口：GBK 编码，需解码后按腾讯格式解析
+        const buf = await res.arrayBuffer();
+        const text = new TextDecoder('gbk').decode(buf);
+        items = parseQuoteResponse(text, src);
+      } else if (src.type === 'fx') {
+        // 汇率接口：frankfurter 7 日序列（ECB 中间价，基准 USD），最近交易日环比算涨跌
+        const d = new Date();
+        d.setDate(d.getDate() - 7);
+        const sd = d.toISOString().slice(0, 10);
+        const to = 'CNY,' + (src.symbols || []).filter(c => c !== 'USD').join(',');
+        const ser = await fetch('https://api.frankfurter.dev/v1/' + sd + '..?from=USD&to=' + to, opt);
+        const sj = await ser.json();
+        items = parseFx(sj, src);
+      } else {
+        const json = await res.json();
+        items = parseItems(src, json);
+      }
     }
     if (!items.length) throw new Error('解析结果为空');
     const entry = { t: Date.now(), items };

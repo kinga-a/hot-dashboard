@@ -56,16 +56,16 @@ http.createServer(async (req, res) => {
   const method = req.method || 'GET';
 
   try {
-    if (url === '/api/board' || url === '/api/admin') {
+    if (url === '/api/board' || url === '/api/admin' || url === '/api/proxy') {
       let bodyObj = {};
       if (method === 'POST') {
         let body = '';
         for await (const chunk of req) body += chunk;
         try { bodyObj = JSON.parse(body); } catch (e) {}
       }
-      const mod = url === '/api/board' ? 'board' : 'admin';
+      const mod = url === '/api/board' ? 'board' : (url === '/api/admin' ? 'admin' : 'proxy');
       const api = await loadApi(mod);
-      const ctx = { env: { BOARD_KV: memKV, ADMIN_TOKEN }, request: mockRequest(method, url, bodyObj) };
+      const ctx = { env: { BOARD_KV: memKV, ADMIN_TOKEN }, request: mockRequest(method, req.url, bodyObj) };
       let r;
       if (mod === 'board' && method === 'GET') r = await api.onRequestGet(ctx);
       else if (mod === 'admin') r = await api.onRequest(ctx);

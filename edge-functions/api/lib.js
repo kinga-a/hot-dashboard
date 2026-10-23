@@ -48,6 +48,22 @@ function quote(id, name, color, symbols, names, note) {
   };
 }
 
+// 服务端代理源构造器：无 CORS 的页面/接口由后端 Edge Function 抓取解析（/api/proxy?id=），前端 fetch 同源代理
+function page(id, name, color, target, showItems = 10) {
+  return {
+    id,
+    name,
+    url: target,
+    iconColor: color,
+    showItems,
+    listPath: 'data',
+    titleField: 'title',
+    urlField: 'link',
+    type: 'page',
+    enabled: true
+  };
+}
+
 // 汇率源构造器（frankfurter.app：ECB 官方数据、免费无 key、CORS 开放、UTF-8 JSON；基准 USD）
 // 前端拉取最近 7 日序列，交叉换算「1 外币 = ? 人民币」，涨跌 = 最近交易日环比
 function fxQuote(id, name, color, currencies, names) {
@@ -86,6 +102,13 @@ const DEFAULT_CONFIG = {
         fxQuote('qt-fx', '主要汇率', '#0ea5e9',
           ['USD', 'EUR', 'GBP', 'JPY', 'HKD', 'AUD'],
           ['美元/人民币', '欧元/人民币', '英镑/人民币', '日元/人民币', '港币/人民币', '澳元/人民币'])
+      ]
+    },
+    {
+      id: 'gmovie', name: '影视热播', color: '#7c3aed', order: 7, cardCount: 2,
+      sources: [
+        page('hb-redfruit', '红果短剧热播榜', '#ec4899', 'https://hongguoduanju.com/rank/hot-drama', 10),
+        page('hb-douban-movie', '豆瓣热门电影', '#00b51d', 'https://movie.douban.com/j/search_subjects?type=movie&tag=%E7%83%AD%E9%97%A8', 10)
       ]
     },
     {
