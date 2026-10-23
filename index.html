@@ -74,10 +74,11 @@
   @media (max-width:640px){
     body{padding:20px 14px 40px;}
     .masthead h1{font-size:22px;}
-    .row{grid-template-columns:repeat(2,1fr) !important;}
-    .card{padding:13px 13px 11px;}
-    .card .item{font-size:13px;}
-    .card .hot{max-width:36%;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;}
+    /* 手机端单列竖排：每张卡片完整可读 */
+    .row{grid-template-columns:repeat(1,1fr) !important;}
+    .card{padding:15px 15px 12px;}
+    .card .item{font-size:13.5px;padding:6.5px 0;}
+    .card .hot{max-width:38%;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;}
   }
 </style>
 </head>
