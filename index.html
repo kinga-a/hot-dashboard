@@ -46,6 +46,9 @@
   .card-top .src{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
   .card-top .src a{color:inherit;text-decoration:none;}
   .card-top .src a:hover{color:var(--accent);}
+  .card-top .acts{display:flex;align-items:center;gap:2px;flex:0 0 auto;}
+  .card-top .expand{border:none;background:transparent;color:#9aa3b2;cursor:pointer;font-size:12px;line-height:1;width:22px;height:22px;border-radius:6px;display:grid;place-items:center;transition:background .15s,color .15s;}
+  .card-top .expand:hover{background:#eef2f8;color:var(--ink);}
   .card-top .ico{flex:0 0 auto;}
   .card-top .ico svg{width:16px;height:16px;display:block;}
   .card .ts{font-size:11px;color:#b4bcc9;margin-bottom:8px;}
@@ -53,6 +56,9 @@
   .card .list{list-style:none;display:flex;flex-direction:column;flex:1;}
   .card .item{display:flex;align-items:flex-start;gap:9px;padding:5.5px 0;border-top:1px solid #f0f2f7;font-size:13.5px;line-height:1.5;}
   .card .item:first-child{border-top:none;}
+  /* 折叠：超出 showItems 的条目默认隐藏，卡片 expanded 时显示 */
+  .card .item.x{display:none;}
+  .card.expanded .item.x{display:flex;}
   .card .item a{color:var(--ink);text-decoration:none;min-width:0;flex:1;}
   .card .item a:hover{color:var(--accent);}
   .rank{flex:0 0 17px;width:17px;height:17px;border-radius:4.5px;font-size:11px;font-weight:700;color:#fff;display:inline-flex;align-items:center;justify-content:center;margin-top:2px;}
@@ -203,6 +209,13 @@ function renderCard(el, src, items, t, err){
   const show = src.showItems || 6;
   const list = el.querySelector('.list');
   const tsEl = el.querySelector('.ts');
+  const btn = el.querySelector('.expand');
+  const expanded = el.classList.contains('expanded');
+  if (btn) {
+    btn.textContent = expanded ? '▴' : '▾';
+    btn.title = expanded ? '收起' : '展开全部';
+    btn.style.display = (items && items.length > show) ? '' : 'none';
+  }
   if (err) {
     tsEl.innerHTML = '<span class="err">' + escapeHtml(err) + '</span>';
   } else if (t) {
@@ -215,14 +228,21 @@ function renderCard(el, src, items, t, err){
     list.innerHTML = '<div class="empty">暂无数据</div>';
     return;
   }
-  list.innerHTML = items.slice(0, show).map((t2,i)=>`
-    <li class="item">
+  // 全部条目渲染，超出 showItems 的加 .x 类，由 .expanded 控制显隐
+  list.innerHTML = items.map((t2,i)=>`
+    <li class="item${i>=show?' x':''}">
       <span class="rank ${rankCls(i)}">${t2.rank||i+1}</span>
       <a href="${safeUrl(t2.url)}" target="_blank" rel="noopener" title="${escapeHtml(t2.title)}">${escapeHtml(t2.title)}</a>
       ${t2.hot ? `<span class="hot">${escapeHtml(String(t2.hot))}</span>` : ''}
     </li>`).join('');
   const more = el.querySelector('.more');
-  if (more) more.textContent = items.length > show ? ('TOP ' + show + ' · 共 ' + items.length + ' 条') : ('TOP ' + Math.min(show, items.length));
+  if (more) {
+    if (items.length > show) {
+      more.textContent = expanded ? ('已展开 · 共 ' + items.length + ' 条') : ('TOP ' + show + ' · 共 ' + items.length + ' 条');
+    } else {
+      more.textContent = 'TOP ' + Math.min(show, items.length);
+    }
+  }
 }
 
 function escapeHtml(s){
@@ -259,10 +279,13 @@ async function loadBoard(){
         <section class="group">
           <div class="group-head"><span class="tag" style="background:${g.color}"></span><h2>${escapeHtml(g.name)}</h2><span class="count">${cards.length} 个数据源</span></div>
           <div class="row" style="grid-template-columns:repeat(${cols},1fr)">${cards.map(c=>`
-            <article class="card" data-src="${c.id}">
+            <article class="card" data-src="${c.id}" data-show-items="${c.showItems||6}">
               <div class="card-top">
                 <span class="src">${escapeHtml(c.name)}</span>
-                <span class="ico" style="color:${c.iconColor||g.color}">${flameIcon()}</span>
+                <span class="acts">
+                  <button class="expand" type="button" title="展开全部" aria-label="展开或收起">▾</button>
+                  <span class="ico" style="color:${c.iconColor||g.color}">${flameIcon()}</span>
+                </span>
               </div>
               <div class="ts"></div>
               <ul class="list"><div class="loading">加载中…</div></ul>
@@ -298,12 +321,26 @@ async function loadBoard(){
   }
 }
 
-// toast 提示（示例链接等）
+// toast 提示 + 卡片展开/收起（事件委托）
 (function(){
   const t=document.createElement('div');t.className='toast';document.body.appendChild(t);
   let timer;
   function show(msg){t.textContent=msg;t.classList.add('show');clearTimeout(timer);timer=setTimeout(()=>t.classList.remove('show'),1800);}
   document.addEventListener('click',e=>{
+    const btn = e.target.closest('.expand');
+    if (btn) {
+      const card = btn.closest('.card');
+      if (!card) return;
+      card.classList.toggle('expanded');
+      const exp = card.classList.contains('expanded');
+      btn.textContent = exp ? '▴' : '▾';
+      btn.title = exp ? '收起' : '展开全部';
+      const more = card.querySelector('.more');
+      const n = card.querySelectorAll('.item').length;
+      const showN = parseInt((card.dataset.showItems || '6'), 10);
+      if (more) more.textContent = exp ? ('已展开 · 共 ' + n + ' 条') : ('TOP ' + Math.min(showN, n) + ' · 共 ' + n + ' 条');
+      return;
+    }
     const a=e.target.closest('a');
     if(a && (!a.href || a.href==='#')) { e.preventDefault(); show('该条目暂无跳转链接'); }
   });
