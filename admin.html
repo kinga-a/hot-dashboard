@@ -31,6 +31,12 @@
   .src-row .nm{font-weight:600;font-size:13.5px;}
   .src-row .url{color:var(--muted);font-size:12px;flex:1;min-width:140px;word-break:break-all;}
   .src-row .meta{font-size:12px;color:var(--muted);}
+  .toggle-btn{display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:4px 10px;border-radius:999px;border:1px solid var(--line);font-size:12px;background:#fff;color:var(--muted);transition:all .15s ease;line-height:1;}
+  .toggle-btn::before{content:'';width:8px;height:8px;border-radius:50%;background:#cbd5e1;transition:background .15s ease;}
+  .toggle-btn.on{background:rgba(37,99,235,.08);border-color:rgba(37,99,235,.35);color:#2563eb;}
+  .toggle-btn.on::before{background:#2563eb;}
+  .toggle-btn.off::before{background:#94a3b8;}
+  .toggle-btn:active{transform:scale(.96);}
   .src-row .ops{margin-left:auto;display:flex;gap:6px;}
   .src-row .ops .btn{padding:3px 8px;font-size:12px;}
   .field{margin-bottom:12px;}
@@ -181,7 +187,8 @@ function renderGroups(){
       <div class="src-row">
         <span class="nm">${s.name}</span>
         <span class="url" title="${s.url}">${s.url}</span>
-        <span class="meta">显示${s.showItems||6}条 · ${s.enabled===false?'停用':'启用'}</span>
+        <span class="meta">显示${s.showItems||6}条</span>
+        <button class="toggle-btn ${s.enabled===false?'off':'on'}" onclick="toggleSource('${g.id}','${s.id}',${s.enabled===false?'true':'false'})">${s.enabled===false?'已停用':'已启用'}</button>
         <span class="ops">
           <button class="btn btn-ghost" onclick="editSource('${g.id}','${s.id}')">编辑</button>
           <button class="btn btn-danger" onclick="deleteSource('${g.id}','${s.id}')">删</button>
@@ -278,6 +285,14 @@ async function saveSource(){
 async function deleteSource(gid,sid){
   if(!confirm('删除该数据源？')) return;
   try { await api('deleteSource',{groupId:gid,sourceId:sid}); setMsg('数据源已删除'); await load(); } catch(e){ setMsg(e.message,'err'); }
+}
+
+async function toggleSource(gid,sid,newEnabled){
+  try {
+    await api('updateSource',{groupId:gid,sourceId:sid,enabled:newEnabled});
+    setMsg(newEnabled?'已启用':'已停用');
+    await load();
+  } catch(e){ setMsg(e.message,'err'); }
 }
 
 // ===== 全局 =====
