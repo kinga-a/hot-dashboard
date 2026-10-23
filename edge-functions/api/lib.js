@@ -48,11 +48,28 @@ function quote(id, name, color, symbols, names, note) {
   };
 }
 
+// 汇率源构造器（frankfurter.app：ECB 官方数据、免费无 key、CORS 开放、UTF-8 JSON；基准 USD）
+// 前端拉取最近 7 日序列，交叉换算「1 外币 = ? 人民币」，涨跌 = 最近交易日环比
+function fxQuote(id, name, color, currencies, names) {
+  return {
+    id,
+    name,
+    url: 'https://api.frankfurter.dev/v1/latest?from=USD',
+    iconColor: color,
+    showItems: currencies.length,
+    type: 'fx',
+    symbols: currencies,
+    names,
+    note: 'ECB 中间价 · 最近交易日环比',
+    enabled: true
+  };
+}
+
 const DEFAULT_CONFIG = {
   refreshSeconds: 600,
   groups: [
     {
-      id: 'gfinance', name: '财经行情', color: '#d97706', order: 1, cardCount: 4,
+      id: 'gfinance', name: '财经行情', color: '#d97706', order: 1, cardCount: 5,
       sources: [
         quote('qt-index', '全球指数', '#2563eb',
           ['sh000001', 'sz399001', 'sh000300', 'hkHSI', 'usNDX', 'usDJI', 'usINX'],
@@ -65,7 +82,10 @@ const DEFAULT_CONFIG = {
           ['伦敦金', '伦敦银', '纽约黄金', '纽约白银', '布伦特原油']),
         quote('qt-cn-gold', '国内金价', '#eab308',
           ['sh518880', 'sh518800', 'sz159937', 'sz159934'],
-          ['黄金ETF·华安', '黄金ETF·国泰', '黄金ETF·博时', '黄金ETF·易方达'], '黄金ETF · 元/份')
+          ['黄金ETF·华安', '黄金ETF·国泰', '黄金ETF·博时', '黄金ETF·易方达'], '黄金ETF · 元/份'),
+        fxQuote('qt-fx', '主要汇率', '#0ea5e9',
+          ['USD', 'EUR', 'GBP', 'JPY', 'HKD', 'AUD'],
+          ['美元/人民币', '欧元/人民币', '英镑/人民币', '日元/人民币', '港币/人民币', '澳元/人民币'])
       ]
     },
     {

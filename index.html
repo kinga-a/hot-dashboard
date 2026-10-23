@@ -106,6 +106,7 @@
   /* 行情行：名称 + 点位 + 涨跌（红涨绿跌，国内习惯） */
   .item.q{align-items:center;gap:8px;}
   .item.q a{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .item.q .fx-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);}
   .q-num{font-size:13px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;}
   .q-chg{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
   .q-chg.up{color:var(--up);}.q-chg.down{color:var(--down);}
@@ -272,6 +273,32 @@ function fmtQuote(n){
   return n.toFixed(2);
 }
 
+/* Frankfurter 汇率解析：7 日序列 {date:{CUR:rate}}；交叉换算「1 外币 = ? 人民币」，涨跌 = 最近交易日环比 */
+function parseFx(data, src){
+  const rs = data && data.rates;
+  if (!rs) return [];
+  const dates = Object.keys(rs).sort();
+  if (dates.length < 2) return [];
+  const last = rs[dates[dates.length - 1]];
+  const prev = rs[dates[dates.length - 2]];
+  const cnyLast = parseFloat(last.CNY), cnyPrev = parseFloat(prev.CNY);
+  if (!cnyLast || !cnyPrev) return [];
+  const out = [];
+  for (let i = 0; i < (src.symbols || []).length; i++) {
+    const code = src.symbols[i];
+    let cur, old;
+    if (code === 'USD') { cur = cnyLast; old = cnyPrev; }
+    else {
+      const rLast = parseFloat(last[code]), rPrev = parseFloat(prev[code]);
+      if (!rLast || !rPrev) continue;
+      cur = cnyLast / rLast;
+      old = cnyPrev / rPrev;
+    }
+    out.push({ rank: i + 1, title: src.names[i], price: cur, pct: (cur - old) / old * 100, url: '' });
+  }
+  return out;
+}
+
 /* 抓取单个数据源：先回缓存渲染，再后台刷新 */
 async function loadSource(src, el){
   const key = src.id;
@@ -310,6 +337,15 @@ async function loadSource(src, el){
       const buf = await res.arrayBuffer();
       const text = new TextDecoder('gbk').decode(buf);
       items = parseQuoteResponse(text, src);
+    } else if (src.type === 'fx') {
+      // 汇率接口：frankfurter 7 日序列（ECB 中间价，基准 USD），最近交易日环比算涨跌
+      const d = new Date();
+      d.setDate(d.getDate() - 7);
+      const sd = d.toISOString().slice(0, 10);
+      const to = 'CNY,' + (src.symbols || []).filter(c => c !== 'USD').join(',');
+      const ser = await fetch('https://api.frankfurter.dev/v1/' + sd + '..?from=USD&to=' + to, opt);
+      const sj = await ser.json();
+      items = parseFx(sj, src);
     } else {
       const json = await res.json();
       items = parseItems(src, json);
@@ -363,6 +399,20 @@ function renderCard(el, src, items, t, err){
     </li>`;}).join('');
     const more = el.querySelector('.more');
     if (more) more.textContent = src.note || ('TOP ' + items.length + ' · 实时行情');
+    return;
+  }
+  // 汇率卡片：货币对 + 交叉汇率（4 位小数）+ 涨跌%
+  if (src.type === 'fx') {
+    list.innerHTML = items.map(t2=>{
+      const up = (t2.pct || 0) >= 0;
+      return `
+    <li class="item q">
+      <span class="fx-name" title="${escapeHtml(t2.title)}">${escapeHtml(t2.title)}</span>
+      <span class="q-num">${(!isNaN(t2.price)?t2.price.toFixed(4):'—')}</span>
+      <span class="q-chg ${up?'up':'down'}">${up?'+':''}${(!isNaN(t2.pct)?t2.pct.toFixed(2):'—')}%</span>
+    </li>`;}).join('');
+    const more = el.querySelector('.more');
+    if (more) more.textContent = src.note || ('TOP ' + items.length + ' · 实时汇率');
     return;
   }
   // 全部条目渲染，超出 showItems 的加 .x 类，由 .expanded 控制显隐
