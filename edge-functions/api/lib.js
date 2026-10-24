@@ -83,6 +83,7 @@ function fxQuote(id, name, color, currencies, names) {
 
 export const DEFAULT_CONFIG = {
   refreshSeconds: 600,
+  cardsPerRow: 4, // PC 端每排卡片数（2~6），移动端自动单列
   groups: [
     {
       id: 'gfinance', name: '财经行情', color: '#d97706', order: 1, cardCount: 6,

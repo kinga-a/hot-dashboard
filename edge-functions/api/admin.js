@@ -164,6 +164,14 @@ export async function onRequest(context) {
         break;
       }
 
+      case 'setLayout': { // PC 端每排卡片数
+        const n = Number(body.cardsPerRow);
+        if (!(n >= 2 && n <= 6)) return json({ error: '每排卡片数需在 2~6 之间' }, 400);
+        config.cardsPerRow = n;
+        result = await saveConfig(kv, config);
+        break;
+      }
+
       case 'clearCache': {
         for (const g of config.groups || []) {
           for (const s of g.sources || []) {

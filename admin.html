@@ -170,6 +170,10 @@
         <label>数据自动刷新间隔（秒）</label>
         <input type="number" id="refresh" min="30" step="30" />
       </div>
+      <div class="field">
+        <label>PC 端每排卡片数（2~6）</label>
+        <input type="number" id="cardsPerRow" min="2" max="6" step="1" />
+      </div>
       <div class="btnrow">
         <button class="btn btn-primary" onclick="saveRefresh()">保存刷新设置</button>
         <button class="btn btn-ghost" onclick="clearCache()">清除数据缓存</button>
@@ -285,6 +289,7 @@ async function load(){
   try {
     CONFIG = await api('get');
     document.getElementById('refresh').value = CONFIG.refreshSeconds || 600;
+    document.getElementById('cardsPerRow').value = CONFIG.cardsPerRow || 4;
     renderGroups();
   } catch(e){
     if (String(e.message).includes('未授权')){
@@ -416,7 +421,13 @@ async function toggleSource(gid,sid,newEnabled){
 
 // ===== 全局 =====
 async function saveRefresh(){
-  try { await api('setRefresh',{refreshSeconds:document.getElementById('refresh').value}); setMsg('刷新间隔已保存'); } catch(e){ setMsg(e.message,'err'); }
+  try {
+    await Promise.all([
+      api('setRefresh',{refreshSeconds:document.getElementById('refresh').value}),
+      api('setLayout',{cardsPerRow:document.getElementById('cardsPerRow').value})
+    ]);
+    setMsg('全局设置已保存');
+  } catch(e){ setMsg(e.message,'err'); }
 }
 async function clearCache(){
   try { await api('clearCache'); setMsg('已清除全部数据缓存'); } catch(e){ setMsg(e.message,'err'); }

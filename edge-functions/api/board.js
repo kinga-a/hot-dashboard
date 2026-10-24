@@ -9,6 +9,7 @@ export async function onRequestGet(context) {
   const kv = getKV(context);
   const config = await readConfig(kv);
   const refreshSeconds = config.refreshSeconds || 600;
+  const cardsPerRow = config.cardsPerRow || 4;
   const now = Date.now();
 
   const groups = [];
@@ -45,7 +46,7 @@ export async function onRequestGet(context) {
 
   groups.sort((a, b) => (a.order || 0) - (b.order || 0));
 
-  return json({ refreshSeconds, now, groups });
+  return json({ refreshSeconds, cardsPerRow, now, groups });
 }
 
 export async function onRequestOptions() {
