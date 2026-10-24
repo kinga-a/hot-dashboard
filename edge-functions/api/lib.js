@@ -119,7 +119,11 @@ const DEFAULT_CONFIG = {
         src('mproPpoq6O', '知乎热榜', '#0084ff'),
         src('Jb0vmloB1G', '百度热搜', '#2932e1'),
         src('toutiao', '头条热榜', '#f03d3d'),
-        src('WnBe01o371', '微信热文', '#07c160')
+        src('WnBe01o371', '微信热文', '#07c160'),
+        src('K7GdagpoQy', '什么值得买', '#e8340e'),
+        src('Om4ejxvxEN', '百度贴吧', '#4a90d9'),
+        page('hb-sina-hot', '新浪热榜', '#f6842e', 'https://top.news.sina.com.cn/ws/GetTopDataList.php', 10),
+        page('hb-netease', '网易新闻', '#d0021b', 'https://m.163.com/fe/api/hot/news/flow', 10)
       ]
     },
     {
@@ -129,37 +133,53 @@ const DEFAULT_CONFIG = {
         src('QaqeEaVe9R', '掘金热榜', '#1e80ff'),
         src('Y2KeDGQdNP', '少数派', '#e65929'),
         src('74Kvx59dkx', 'IT之家', '#e2522f'),
-        src('Q1Vd5Ko85R', '36氪', '#1cbfa0')
+        src('Q1Vd5Ko85R', '36氪', '#1cbfa0'),
+        src('DgeyrgMoZq', 'CSDN', '#fc5531'),
+        src('VaobJ88oAj', '站酷', '#e07b00'),
+        src('5VaobgvAj1', '虎嗅', '#d0021b'),
+        src('rYqoXZzdOD', '开源中国', '#00a062'),
+        src('20MdKx4ew1', '人人都是产品经理', '#1e88e5')
       ]
     },
     {
       id: 'gglobal', name: '海外视野', color: '#0f9d58', order: 4, cardCount: 5,
       sources: [
         src('LBwdG0jePx', 'Product Hunt', '#da552f'),
-        src('12owgX0oNV', '腾讯新闻', '#256eb3'),
-        src('rx9ozj7oXb', '新浪新闻', '#e6162d'),
-        src('X12owXzvNV', '雪球热帖', '#00a5e5'),
-        src('G2me3ndwjq', '华尔街见闻', '#c9a063')
+        page('hb-hn', 'Hacker News', '#ff6600', 'https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=20', 10),
+        page('hb-devto', 'dev.to', '#3b49df', 'https://dev.to/api/articles?top=7&per_page=20', 10),
+        page('hb-appstore', 'App Store 免费榜', '#0d96f6', 'https://itunes.apple.com/us/rss/topfreeapplications/limit=10/json', 10),
+        page('hb-bbc', 'BBC 新闻', '#bb1919', 'https://feeds.bbci.co.uk/news/world/rss.xml', 10),
+        page('hb-nyt', '纽约时报', '#1c2333', 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml', 10),
+        page('hb-guardian', '卫报', '#14284b', 'https://www.theguardian.com/world/rss', 10),
+        page('hb-aljazeera', '半岛电视台', '#b6102f', 'https://www.aljazeera.com/xml/rss/all.xml', 10),
+        page('hb-npr', 'NPR', '#2659a4', 'https://feeds.npr.org/1001/rss.xml', 10),
+        page('hb-dw', '德国之声', '#2a5da8', 'https://rss.dw.com/rdf/rss-en-world', 10)
       ]
     },
     {
       id: 'gnews', name: '新闻资讯', color: '#f97316', order: 5, cardCount: 5,
       sources: [
-        src('74KvxwokxM', 'B站热门', '#fb7299'),
-        src('DpQvNABoNE', '抖音热榜', '#f2f5f8'),
-        src('G47o8weMmN', '虎扑热帖', '#d43c33'),
-        src('4KvxEX0dkx', '微信读书', '#2c6fbb'),
-        src('n3moBE1eN5', '懂球帝', '#00b76a')
+        src('12owgX0oNV', '腾讯新闻·热问', '#256eb3'),
+        src('rx9ozj7oXb', '新浪财经', '#e6162d'),
+        src('0MdKam4ow1', '第一财经', '#1c3e8e'),
+        src('X12owXzvNV', '雪球热帖', '#00a5e5'),
+        src('G2me3ndwjq', '华尔街见闻', '#c9a063'),
+        page('hb-thepaper', '澎湃新闻', '#e66a2c', 'https://cache.thepaper.cn/contentapi/wwwIndex/rightSidebar', 10),
+        page('hb-chinanews', '中国新闻网', '#e02e2e', 'https://www.chinanews.com.cn/rss/scroll-news.xml', 10)
       ]
     },
     {
       id: 'gfun', name: '影音娱乐', color: '#8b5cf6', order: 6, cardCount: 5,
       sources: [
-        src('9JndkpJe3V', '猫眼电影', '#ff4d00'),
-        src('VaobbkqoAj', 'IMDb Top', '#e2b616'),
+        src('74KvxwokxM', '哔哩哔哩', '#fb7299'),
+        src('DpQvNABoNE', '抖音热点', '#f2f5f8'),
+        page('hb-douban-chart', '豆瓣新片榜', '#00b51d', 'https://movie.douban.com/chart', 10),
+        src('G47o8weMmN', '虎扑步行街', '#d43c33'),
+        src('4KvxEX0dkx', '微信读书', '#2c6fbb'),
+        src('n3moBE1eN5', '懂球帝', '#00b76a'),
         src('MZd7PrPerO', '快手热榜', '#ff4906'),
-        src('K7GdagpoQy', '什么值得买', '#e8340e'),
-        src('Om4ejxvxEN', '百度贴吧', '#4a90d9')
+        src('9JndkpJe3V', '猫眼电影', '#ff4d00'),
+        src('VaobbkqoAj', 'IMDb Top', '#e2b616')
       ]
     }
   ]
