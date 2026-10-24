@@ -124,11 +124,14 @@ export const DEFAULT_CONFIG = decorateIcon({
   cardsPerRow: 4, // PC 端每排卡片数（2~6），移动端自动单列
   groups: [
     {
-      id: 'gfinance', name: '财经行情', color: '#d97706', order: 1, cardCount: 7,
+      id: 'gfinance', name: '财经行情', color: '#d97706', order: 1, cardCount: 8,
       sources: [
         quote('qt-index', '全球指数', '#2563eb',
           ['sh000001', 'sz399001', 'sh000300', 'hkHSI', 'usNDX', 'usDJI', 'usINX'],
           ['上证指数', '深证成指', '沪深300', '恒生指数', '纳斯达克100', '道琼斯', '标普500']),
+        quote('qt-hk-stock', '热门港股', '#f59e0b',
+          ['hk00700', 'hk01810', 'hk03690', 'hk09988', 'hk01024', 'hk09618'],
+          ['腾讯控股', '小米集团', '美团', '阿里巴巴', '快手', '京东集团']),
         quote('qt-us-stock', '热门美股', '#3b82f6',
           ['usAAPL', 'usGOOG', 'usMSFT', 'usNVDA', 'usTSLA', 'usJD', 'usBABA', 'usPDD'],
           ['苹果', '谷歌', '微软', '英伟达', '特斯拉', '京东', '阿里巴巴', '拼多多']),
