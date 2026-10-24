@@ -119,6 +119,10 @@
   .masthead h1 .logo{width:40px;height:40px;border-radius:12px;flex:0 0 40px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:grid;place-items:center;box-shadow:0 8px 24px rgba(99,102,241,.4),inset 0 1px 0 rgba(255,255,255,.35);}
   .masthead h1 .logo svg{width:22px;height:22px;}
   .masthead .sub{color:var(--muted);font-size:13.5px;margin-top:7px;line-height:1.6;}
+  .masthead .datetime{display:flex;align-items:center;gap:7px;margin-top:9px;font-size:13px;color:var(--ink);font-variant-numeric:tabular-nums;}
+  .masthead .datetime #dateTxt{color:var(--ink);font-weight:600;}
+  .masthead .datetime .dt-sep{color:var(--faint);}
+  .masthead .datetime #clockTxt{color:var(--accent);font-weight:700;letter-spacing:.5px;}
   .pill,.search .s-box{background:var(--chip-bg);border:1px solid var(--hair);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);box-shadow:var(--chip-shadow);}
   .pill{display:inline-flex;align-items:center;gap:8px;border-radius:999px;min-height:38px;padding:0 15px;font-size:12.5px;color:var(--muted);}
   .pill .dot{width:8px;height:8px;border-radius:50%;background:#1fbf71;box-shadow:0 0 0 3px rgba(31,191,113,.16);animation:livePulse 2.4s ease-in-out infinite;flex:0 0 auto;}
@@ -307,6 +311,11 @@
         热点聚合看板
       </h1>
       <div class="sub">全网热搜 · 体育赛事 · 影视动态 · 每日资讯 一站式预览</div>
+      <div class="datetime">
+        <span id="dateTxt"></span>
+        <span class="dt-sep">·</span>
+        <span id="clockTxt">--:--:--</span>
+      </div>
     </div>
     <div class="mh-right">
       <div class="mh-row1">
@@ -775,6 +784,20 @@ document.addEventListener('click', (e) => {
     try{localStorage.setItem('board_theme',next)}catch(e){}
     if(btn.animate){btn.animate([{transform:'rotate(0) scale(.75)'},{transform:'rotate(200deg) scale(1)'}],{duration:380,easing:'cubic-bezier(.61,.98,.48,1.01)'});}
   });
+})();
+
+/* ===== 顶部日期时间（实时时钟，每秒更新） ===== */
+(function(){
+  const WEEK = ['日','一','二','三','四','五','六'];
+  function tick(){
+    const d = new Date();
+    document.getElementById('dateTxt').textContent =
+      d.getFullYear() + '年' + String(d.getMonth()+1).padStart(2,'0') + '月' + String(d.getDate()).padStart(2,'0') + '日 星期' + WEEK[d.getDay()];
+    document.getElementById('clockTxt').textContent =
+      String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ':' + String(d.getSeconds()).padStart(2,'0');
+  }
+  tick();
+  setInterval(tick, 1000);
 })();
 
 loadBoard();
