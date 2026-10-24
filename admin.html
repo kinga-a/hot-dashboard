@@ -257,7 +257,13 @@
       <div class="field"><label>图标颜色</label><input type="color" id="sColor" value="#2563eb" /></div>
       <div class="field"><label>自定义请求头(可选)</label><input id="sHeaders" placeholder='{"User-Agent":"Mozilla/5.0"}' /></div>
     </div>
-    <div class="hint">列表路径：接口 JSON 中榜单数组所在位置，留空自动查找。标题字段=标题、链接字段=跳转链接。</div>
+    <div class="field"><label>字段配置（可选）——第一行是主标题，其余行显示在标题下方</label></div>
+    <div class="row2">
+      <div class="field"><input id="sF1" placeholder="字段1 如 name" /><input id="sF1L" placeholder="显示名1 如 金价名称" style="margin-top:6px" /></div>
+      <div class="field"><input id="sF2" placeholder="字段2 如 sell_price" /><input id="sF2L" placeholder="显示名2 如 卖出价" style="margin-top:6px" /></div>
+      <div class="field"><input id="sF3" placeholder="字段3 如 today_price" /><input id="sF3L" placeholder="显示名3 如 今日价" style="margin-top:6px" /></div>
+    </div>
+    <div class="hint">列表路径：接口 JSON 中榜单数组所在位置，留空自动查找。标题字段=标题、链接字段=跳转链接。字段配置示例：金价接口填 字段1=name、字段2=sell_price(显示名=卖出价)、字段3=today_price(显示名=今日价)。</div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('srcModal')">取消</button>
       <button class="btn btn-primary" onclick="saveSource()">保存数据源</button>
@@ -390,7 +396,12 @@ function editSource(gid,sid){
   document.getElementById('sGroupId').value=gid; document.getElementById('sId').value=sid;
   document.getElementById('sName').value=s.name; document.getElementById('sUrl').value=s.url;
   document.getElementById('sPath').value=s.listPath||''; document.getElementById('sTitle').value=s.titleField||'title';
-  document.getElementById('sUrlField').value=s.urlField||'url'; document.getElementById('sShow').value=s.showItems||6;
+  document.getElementById('sUrlField').value=s.urlField||'url';
+  const f=s.fields||[];
+  for(let i=0;i<3;i++){
+    document.getElementById('sF'+(i+1)).value=(f[i]&&f[i].field)||'';
+    document.getElementById('sF'+(i+1)+'L').value=(f[i]&&f[i].label)||'';
+  } document.getElementById('sShow').value=s.showItems||6;
   document.getElementById('sColor').value=s.iconColor||'#2563eb'; document.getElementById('sHeaders').value=s.headers||'';
   document.getElementById('srcModal').classList.add('show');
 }
@@ -401,7 +412,8 @@ async function saveSource(){
       url:document.getElementById('sUrl').value, listPath:document.getElementById('sPath').value,
       titleField:document.getElementById('sTitle').value, urlField:document.getElementById('sUrlField').value,
       showItems:document.getElementById('sShow').value, iconColor:document.getElementById('sColor').value,
-      headers:document.getElementById('sHeaders').value };
+      headers:document.getElementById('sHeaders').value,
+      fields:[1,2,3].map(i=>({field:document.getElementById('sF'+i).value.trim(),label:document.getElementById('sF'+i+'L').value.trim()})).filter(x=>x.field) };
     if (sid) await api('updateSource',payload); else await api('addSource',payload);
     closeModal('srcModal'); setMsg('数据源已保存'); await load();
   } catch(e){ setMsg(e.message,'err'); }

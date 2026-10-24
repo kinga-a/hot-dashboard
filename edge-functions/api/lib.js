@@ -49,16 +49,18 @@ function quote(id, name, color, symbols, names, note) {
 }
 
 // 服务端代理源构造器：无 CORS 的页面/接口由后端 Edge Function 抓取解析（/api/proxy?id=），前端 fetch 同源代理
-function page(id, name, color, target, showItems = 10) {
+function page(id, name, color, target, showItems = 10, opts) {
+  const o = opts || {};
   return {
     id,
     name,
     url: target,
     iconColor: color,
     showItems,
-    listPath: 'data',
-    titleField: 'title',
-    urlField: 'link',
+    listPath: o.listPath || 'data',
+    titleField: o.titleField || 'title',
+    urlField: o.urlField || 'link',
+    fields: o.fields || [],
     type: 'page',
     enabled: true
   };
@@ -137,7 +139,16 @@ export const DEFAULT_CONFIG = decorateIcon({
           ['sh518880', 'sh518800', 'sz159937', 'sz159934'],
           ['黄金ETF·华安', '黄金ETF·国泰', '黄金ETF·博时', '黄金ETF·易方达'], '黄金ETF · 元/份'),
         page('hb-ruseo-gold', '国内金价·元/克', '#d97706', 'https://api.ruseo.cn/api/goldprice', 12),
-        page('hb-tmini-gold', 'Tmini 金价', '#d4af37', 'https://tmini.net/api/gold-price?type=json', 10),
+        // Tmini 金价：CORS 开放直连，fields 多列渲染（名称/卖出价/今日价/单位）
+        { id: 'hb-tmini-gold', name: 'Tmini 金价', url: 'https://tmini.net/api/gold-price?type=json', iconColor: '#d4af37',
+          showItems: 8, listPath: 'metals', titleField: 'name', urlField: '',
+          fields: [
+            { field: 'name', label: '金价名称' },
+            { field: 'sell_price', label: '卖出价' },
+            { field: 'today_price', label: '今日价' },
+            { field: 'unit', label: '单位' }
+          ],
+          enabled: true },
         fxQuote('qt-fx', '主要汇率', '#0ea5e9',
           ['USD', 'EUR', 'GBP', 'JPY', 'HKD', 'AUD'],
           ['美元/人民币', '欧元/人民币', '英镑/人民币', '日元/人民币', '港币/人民币', '澳元/人民币'])

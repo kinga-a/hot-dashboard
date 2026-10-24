@@ -272,6 +272,9 @@
   @keyframes itemIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
   .card .item a{color:var(--ink);text-decoration:none;min-width:0;flex:1;transition:color .15s;}
   .card .item a:hover{color:var(--c);}
+  .card .item .ti{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;line-height:1.25;}
+  .card .item .ti .tt{color:var(--ink);font-weight:500;}
+  .card .item .ti .ex{font-size:10.5px;color:var(--faint);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums;}
   .rank{flex:0 0 17px;width:17px;height:17px;border-radius:5.5px;font-size:11px;font-weight:700;color:#fff;display:inline-flex;align-items:center;justify-content:center;margin-top:2px;font-variant-numeric:tabular-nums;}
   .r1{background:linear-gradient(135deg,var(--r1a),var(--r1b));box-shadow:0 2px 10px color-mix(in srgb, var(--r1b) 45%, transparent);}
   .r2{background:linear-gradient(135deg,var(--r2a),var(--r2b));box-shadow:0 2px 10px color-mix(in srgb, var(--r2b) 40%, transparent);}
@@ -436,14 +439,23 @@ function parseItems(src, data){
     arr = data.data;
   }
   if (!Array.isArray(arr)) arr = [];
-  const titleField = src.titleField || 'title';
+  const f0 = (src.fields && src.fields[0]) ? src.fields[0].field : null;
+  const titleField = f0 || src.titleField || 'title';
   const urlField = src.urlField || 'url';
-  return arr.map((it, idx) => ({
-    rank: it.index || (idx + 1),
-    title: it[titleField] !== undefined ? it[titleField] : (it.title || it.name || ''),
-    url: it[urlField] !== undefined ? it[urlField] : (it.link || it.url || ''),
-    hot: it.hotValue !== undefined ? it.hotValue : (it.hot || it.num || '')
-  })).filter(t => t.title);
+  const exFields = (src.fields || []).slice(1);
+  return arr.map((it, idx) => {
+    const extra = exFields.map(f => ({
+      label: f.label || '',
+      value: it[f.field] !== undefined ? it[f.field] : ''
+    })).filter(e => e.value !== '');
+    return {
+      rank: it.index || (idx + 1),
+      title: it[titleField] !== undefined ? it[titleField] : (it.title || it.name || ''),
+      url: it[urlField] !== undefined ? it[urlField] : (it.link || it.url || ''),
+      hot: it.hotValue !== undefined ? it.hotValue : (it.hot || it.num || ''),
+      extra: extra.length ? extra : undefined
+    };
+  }).filter(t => t.title);
 }
 
 /* 腾讯行情解析：返回 v_code="字段~或," 行；指数 ~ 分隔、外盘 , 分隔；GBK 已由调用方解码 */
@@ -640,7 +652,7 @@ function renderCard(el, src, items, t, err){
   list.innerHTML = items.map((t2,i)=>`
     <li class="item${i>=show?' x':''}">
       <span class="rank ${rankCls(i)}">${t2.rank||i+1}</span>
-      <a href="${safeUrl(t2.url)}" target="_blank" rel="noopener" title="${escapeHtml(t2.title)}">${escapeHtml(t2.title)}</a>
+      <span class="ti">${t2.url ? `<a href="${safeUrl(t2.url)}" target="_blank" rel="noopener" title="${escapeHtml(t2.title)}">${escapeHtml(t2.title)}</a>` : `<b class="tt">${escapeHtml(t2.title)}</b>`}${t2.extra ? `<span class="ex">${t2.extra.map(e=>escapeHtml(e.label?e.label+' '+e.value:e.value)).join(' · ')}</span>` : ''}</span>
       ${t2.hot ? `<span class="hot">${escapeHtml(String(t2.hot))}</span>` : ''}
     </li>`).join('');
   const more = el.querySelector('.more');

@@ -23,6 +23,7 @@ export async function onRequestGet(context) {
         url: s.url || '',
         iconColor: s.iconColor,
         icon: s.icon || '',
+        fields: s.fields || [],
         showItems: s.showItems || 6,
         listPath: s.listPath || '',
         titleField: s.titleField || 'title',

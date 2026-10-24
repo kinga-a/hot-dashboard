@@ -117,6 +117,7 @@ export async function onRequest(context) {
           listPath: body.listPath || '',
           titleField: body.titleField || 'title',
           urlField: body.urlField || 'url',
+          fields: Array.isArray(body.fields) ? body.fields.filter(f=>f && f.field) : [],
           headers: body.headers || '',
           enabled: body.enabled !== false
         };
@@ -138,6 +139,7 @@ export async function onRequest(context) {
             if (body.listPath != null) s.listPath = body.listPath;
             if (body.titleField != null) s.titleField = body.titleField;
             if (body.urlField != null) s.urlField = body.urlField;
+            if (body.fields != null) s.fields = Array.isArray(body.fields) ? body.fields.filter(f=>f && f.field) : [];
             if (body.headers != null) s.headers = body.headers;
             if (body.enabled != null) s.enabled = body.enabled;
             break;
