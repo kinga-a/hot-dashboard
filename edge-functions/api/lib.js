@@ -146,10 +146,9 @@ export const DEFAULT_CONFIG = decorateIcon({
         { id: 'hb-tmini-gold', name: 'Tmini 金价', url: 'https://tmini.net/api/gold-price?type=json', iconColor: '#d4af37',
           showItems: 8, listPath: 'metals', titleField: 'name', urlField: '',
           fields: [
-            { field: 'name', label: '金价名称' },
-            { field: 'sell_price', label: '卖出价' },
-            { field: 'today_price', label: '今日价' },
-            { field: 'unit', label: '单位' }
+            { field: 'name', label: '' },
+            { field: 'sell_price', label: '卖出' },
+            { field: 'today_price', label: '今日' }
           ],
           enabled: true },
         fxQuote('qt-fx', '主要汇率', '#0ea5e9',
