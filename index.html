@@ -314,7 +314,9 @@
     .card{padding:15px 15px 12px;}
     .card:hover,.card:active{transform:none;} /* 触屏不做位移 */
     .card .item{font-size:13.5px;padding:6.5px 0;}
-    .card .hot{max-width:38%;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;}
+    /* 数值永不截断：hot 不再限宽/省略，标题让位，保证任何窄卡下数字完整 */
+    .card .hot{max-width:none;flex-shrink:0;overflow:visible;text-overflow:clip;padding-left:4px;}
+    .rank{flex-shrink:0;}
   }
 </style>
 </head>
