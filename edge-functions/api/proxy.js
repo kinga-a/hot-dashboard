@@ -196,6 +196,29 @@ async function devto() {
   })).filter((it) => it.title);
 }
 
+/* B站实时热搜：官方 square 接口（服务端直连，keyword/show_name/heat_score） */
+async function biliHot() {
+  const j = JSON.parse(await fetchText('https://api.bilibili.com/x/web-interface/wbi/search/square?limit=50'));
+  const list = (j.data && j.data.trending && j.data.trending.list) || [];
+  return list.map((it) => ({
+    title: it.show_name || it.keyword || '',
+    hot: it.heat_score != null ? String(it.heat_score) : '',
+    link: 'https://search.bilibili.com/all?keyword=' + encodeURIComponent(it.keyword || it.show_name || '')
+  })).filter((it) => it.title);
+}
+
+/* 腾讯新闻热点：官方热榜接口（服务端直连，newslist[]: title/url/id；过滤占位条目） */
+async function tencentNews() {
+  const j = JSON.parse(await fetchText('https://r.inews.qq.com/gw/event/hot_ranking_list?page_size=50&page_num=1'));
+  const idlist = j.idlist || [];
+  const list = (idlist[0] && idlist[0].newslist) || [];
+  return list.filter((it) => it.title && !/腾讯新闻用户最关注/.test(it.title)).slice(0, 30).map((it) => ({
+    title: it.title,
+    hot: '',
+    link: it.url || (it.id ? 'https://view.inews.qq.com/a/' + it.id : '')
+  }));
+}
+
 const PARSERS = {
   'hb-redfruit': redfruit,
   'hb-douban-movie': doubanMovie,
@@ -213,7 +236,9 @@ const PARSERS = {
   'hb-appstore': appStore,
   'hb-douban-chart': doubanChart,
   'hb-hn': hn,
-  'hb-devto': devto
+  'hb-devto': devto,
+  'hb-bili-hot': biliHot,
+  'hb-tencent-news': tencentNews
 };
 
 export async function onRequestGet(context) {

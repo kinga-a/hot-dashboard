@@ -166,13 +166,15 @@ export const DEFAULT_CONFIG = {
         src('X12owXzvNV', '雪球热帖', '#00a5e5'),
         src('G2me3ndwjq', '华尔街见闻', '#c9a063'),
         page('hb-thepaper', '澎湃新闻', '#e66a2c', 'https://cache.thepaper.cn/contentapi/wwwIndex/rightSidebar', 10),
-        page('hb-chinanews', '中国新闻网', '#e02e2e', 'https://www.chinanews.com.cn/rss/scroll-news.xml', 10)
+        page('hb-chinanews', '中国新闻网', '#e02e2e', 'https://www.chinanews.com.cn/rss/scroll-news.xml', 10),
+        page('hb-tencent-news', '腾讯新闻热点', '#12b7f5', 'https://r.inews.qq.com/gw/event/hot_ranking_list?page_size=50&page_num=1', 10)
       ]
     },
     {
       id: 'gfun', name: '影音娱乐', color: '#8b5cf6', order: 6, cardCount: 5,
       sources: [
         src('74KvxwokxM', '哔哩哔哩', '#fb7299'),
+        page('hb-bili-hot', 'B站热搜·实时', '#fb7299', 'https://api.bilibili.com/x/web-interface/wbi/search/square?limit=50', 10),
         src('DpQvNABoNE', '抖音热点', '#f2f5f8'),
         page('hb-douban-chart', '豆瓣新片榜', '#00b51d', 'https://movie.douban.com/chart', 10),
         src('G47o8weMmN', '虎扑步行街', '#d43c33'),
