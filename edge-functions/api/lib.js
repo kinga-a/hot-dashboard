@@ -235,6 +235,15 @@ export const DEFAULT_CONFIG = decorateIcon({
         src('9JndkpJe3V', '猫眼电影', '#ff4d00'),
         src('VaobbkqoAj', 'IMDb Top', '#e2b616')
       ]
+    },
+    {
+      id: 'gmotto', name: '每日一句', color: '#0ea5e9', order: 8, cardCount: 1,
+      sources: [
+        { id: 'hb-saying', name: '每日一句', url: 'https://uapis.cn/api/v1/saying', iconColor: '#0ea5e9',
+          showItems: 1, listPath: '', titleField: 'text', urlField: '',
+          fields: [{ field: 'text', label: '' }],
+          enabled: true }
+      ]
     }
   ]
 });
