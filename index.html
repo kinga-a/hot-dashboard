@@ -317,6 +317,8 @@
     /* 数值永不截断：hot 不再限宽/省略，标题让位，保证任何窄卡下数字完整 */
     .card .hot{max-width:none;flex-shrink:0;overflow:visible;text-overflow:clip;padding-left:4px;}
     .rank{flex-shrink:0;}
+    /* 字段附加数值（fields 的 ex）手机端同样永不省略：超宽时换行完整显示，杜绝"卖出860·今…"这类截断 */
+    .card .item .ti .ex{max-width:100%;flex:none;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.45;}
   }
 </style>
 </head>
