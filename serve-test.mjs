@@ -94,6 +94,6 @@ http.createServer(async (req, res) => {
     res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('500: ' + e.message + '\n' + (e.stack || ''));
   }
-}).listen(8790, () => {
-  console.log('测试服务已启动: http://localhost:8790');
+}).listen(Number(process.env.PORT) || 8790, () => {
+  console.log('测试服务已启动: http://localhost:' + (Number(process.env.PORT) || 8790));
 });

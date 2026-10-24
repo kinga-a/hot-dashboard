@@ -5,57 +5,134 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>看板管理后台</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231c2333'/%3E%3Cpath d='M6 16h7v7H6zM13 16h7v7h-7zM20 16h7v7h-7z' fill='%23fff'/%3E%3C/svg%3E" />
+<script>(function(){try{document.documentElement.dataset.theme=localStorage.getItem('board_theme')||'light'}catch(e){}})();</script>
 <style>
-  :root{--bg:#f4f5f8;--card:#fff;--ink:#1c2333;--muted:#7b8496;--line:#e5e9f0;--accent:#2563eb;--danger:#dc2626;--ok:#16a34a;}
+  /* Aurora Glass · 管理后台（与看板同主题双色调色板：默认浅色 / 可切深色，共享 localStorage 键 board_theme） */
+  :root{
+    --cs:light;
+    --aurora:radial-gradient(46% 38% at 12% 0%,rgba(99,102,241,.2),transparent 65%),radial-gradient(38% 32% at 88% 8%,rgba(190,84,226,.15),transparent 65%),radial-gradient(44% 38% at 55% 102%,rgba(34,197,214,.16),transparent 65%);
+    --bg:#eef1f8;--ink:#1c2333;--muted:#546179;--faint:#6f7b94;
+    --hair:rgba(23,32,61,.16);--hair-hi:rgba(23,32,61,.42);
+    --accent:#2f5cd9;--danger:#c92436;--ok:#0e8f57;
+    --glass:linear-gradient(165deg,rgba(255,255,255,.96),rgba(255,255,255,.82) 55%,rgba(255,255,255,.72));
+    --panel-bg:#fff;--field-bg:rgba(255,255,255,.9);
+    --row-bg:rgba(255,255,255,.72);--row-bg-hi:rgba(255,255,255,.98);
+    --chip-bg:rgba(23,32,61,.045);--btn-hover:rgba(37,53,94,.09);
+    --shadow:14px 22px 48px rgba(43,58,105,.13),0 2px 6px rgba(43,58,105,.07);
+    --modal-shadow:24px 40px 90px rgba(43,58,105,.28);
+    --overlay:rgba(30,41,66,.35);
+    --danger-bg:rgba(201,36,54,.07);--danger-line:rgba(201,36,54,.3);--danger-bg-hi:rgba(201,36,54,.14);
+    --ok-bg:rgba(14,143,87,.08);--ok-line:rgba(14,143,87,.28);
+    --on-bg:rgba(47,92,217,.1);--on-line:rgba(47,92,217,.4);--on-fg:#2f5cd9;
+    --ring:rgba(47,92,217,.14);--ring-line:rgba(47,92,217,.6);
+    --h1-grad:linear-gradient(115deg,#1c2946 18%,#2f5cd9 62%,#7a3ff0);
+    --token-bg:#edf1fa;--token-fg:#22304d;
+    --dot-off:#aab6cc;--dot-on:#14b866;
+    --ease-flip:cubic-bezier(.61,.98,.48,1.01);
+  }
+  html[data-theme="dark"]{
+    --cs:dark;
+    --aurora:radial-gradient(46% 38% at 12% 0%,rgba(70,105,255,.2),transparent 65%),radial-gradient(38% 32% at 88% 8%,rgba(146,80,235,.15),transparent 65%),radial-gradient(44% 38% at 55% 102%,rgba(20,190,210,.1),transparent 65%);
+    --bg:#070b16;--ink:#e9edf8;--muted:#8e9ab5;--faint:#66718c;
+    --hair:rgba(255,255,255,.10);--hair-hi:rgba(255,255,255,.24);
+    --accent:#6ea0ff;--danger:#ff5d6c;--ok:#3ddc9a;
+    --glass:linear-gradient(165deg,rgba(168,184,235,.09),rgba(126,146,206,.04) 55%,rgba(255,255,255,.02));
+    --panel-bg:rgba(16,22,40,.96);--field-bg:rgba(255,255,255,.05);
+    --row-bg:rgba(255,255,255,.04);--row-bg-hi:rgba(255,255,255,.07);
+    --chip-bg:rgba(255,255,255,.05);--btn-hover:rgba(255,255,255,.1);
+    --shadow:14px 20px 55px rgba(2,6,18,.42);
+    --modal-shadow:24px 40px 90px rgba(0,0,0,.6);
+    --overlay:rgba(4,7,15,.66);
+    --danger-bg:rgba(255,93,108,.1);--danger-line:rgba(255,93,108,.35);--danger-bg-hi:rgba(255,93,108,.2);
+    --ok-bg:rgba(61,220,154,.1);--ok-line:rgba(61,220,154,.35);
+    --on-bg:rgba(110,160,255,.12);--on-line:rgba(110,160,255,.45);--on-fg:#9dbdff;
+    --ring:rgba(110,160,255,.15);--ring-line:rgba(110,160,255,.65);
+    --h1-grad:linear-gradient(115deg,#fff 20%,#9db9ff 62%,#cba6ff);
+    --token-bg:#0b1226;--token-fg:#dbe4ff;
+    --dot-off:#55617d;--dot-on:#3ddc9a;
+  }
+  html{color-scheme:var(--cs);}
   *{margin:0;padding:0;box-sizing:border-box;}
-  body{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:24px;}
+  body{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:24px;min-height:100vh;}
+  body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:var(--aurora);}
   .wrap{max-width:960px;margin:0 auto;}
   header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
-  header h1{font-size:22px;font-weight:800;display:flex;align-items:center;gap:10px;}
-  header h1 svg{width:24px;height:24px;}
-  .btn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:9px;padding:8px 14px;font-size:13.5px;font-weight:600;cursor:pointer;transition:.15s;}
-  .btn-primary{background:var(--accent);color:#fff;}
-  .btn-primary:hover{background:#1d4ed8;}
-  .btn-ghost{background:#eef2f7;color:var(--ink);}
-  .btn-ghost:hover{background:#e2e8f0;}
-  .btn-danger{background:#fef2f2;color:var(--danger);}
-  .btn-danger:hover{background:#fee2e2;}
-  .btn-sm{padding:5px 10px;font-size:12.5px;border-radius:7px;}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(16,24,40,.05);}
+  header h1{font-size:22px;font-weight:800;display:flex;align-items:center;gap:10px;background:var(--h1-grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  header h1 svg{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);padding:3px;box-shadow:0 6px 18px rgba(99,102,241,.4),inset 0 1px 0 rgba(255,255,255,.3);}
+  .btn svg{width:14px;height:14px;flex:0 0 auto;}
+  header .ops{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .theme-btn{width:38px;height:38px;border-radius:999px;display:grid;place-items:center;cursor:pointer;color:var(--muted);flex:0 0 auto;
+    background:var(--chip-bg);border:1px solid var(--hair);box-shadow:var(--shadow);
+    -webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);
+    transition:transform .3s var(--ease-flip),border-color .2s,color .2s;}
+  .theme-btn:hover{color:var(--ink);border-color:var(--hair-hi);transform:rotate(-18deg) scale(1.08);}
+  .theme-btn:active{transform:scale(.9) rotate(8deg);}
+  .theme-btn svg{width:17px;height:17px;}
+  .ic-sun{display:none;}
+  html[data-theme="dark"] .ic-sun{display:block;}
+  html[data-theme="dark"] .ic-moon{display:none;}
+  .btn:focus-visible,.theme-btn:focus-visible,.toggle-btn:focus-visible{outline:2px solid var(--ring-line);outline-offset:2px;}
+  .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--hair);border-radius:10px;padding:8px 14px;font-size:13.5px;font-weight:600;cursor:pointer;transition:transform .18s var(--ease-flip),box-shadow .18s,border-color .18s,background .18s;text-decoration:none;}
+  .btn:hover{transform:translateY(-1px) scale(1.03);}
+  .btn:active{transform:scale(.95) rotate(.8deg);}
+  .btn-primary{background:linear-gradient(135deg,#3f6fef,#7c5cf0);color:#fff;border-color:rgba(255,255,255,.22);box-shadow:0 8px 22px -6px rgba(88,101,242,.55),inset 0 1px 0 rgba(255,255,255,.25);}
+  .btn-primary:hover{background:linear-gradient(135deg,#4b7bff,#8a6bff);}
+  .btn-ghost{background:var(--chip-bg);color:var(--ink);}
+  .btn-ghost:hover{background:var(--btn-hover);border-color:var(--hair-hi);}
+  .btn-danger{background:var(--danger-bg);color:var(--danger);border-color:var(--danger-line);}
+  .btn-danger:hover{background:var(--danger-bg-hi);}
+  .btn-sm{padding:5px 10px;font-size:12.5px;border-radius:8px;}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+  .card{background:var(--glass);border:1px solid var(--hair);border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);}
   .card h3{font-size:15px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-  .grp{border-left:4px solid var(--accent);}
+  .grp{position:relative;border-left:4px solid var(--accent);transition:transform .3s var(--ease-flip),border-color .3s,box-shadow .3s;}
+  .grp:hover{transform:translateY(-2px);box-shadow:18px 28px 66px rgba(43,58,105,.16);}
+  html[data-theme="dark"] .grp:hover{box-shadow:18px 28px 72px rgba(2,6,18,.55);}
   .grp-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
   .grp-head .name{font-size:16px;font-weight:700;flex:1;min-width:120px;}
   .grp-head .info{font-size:12.5px;color:var(--muted);}
-  .src-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-top:10px;background:#fafbfd;flex-wrap:wrap;}
+  .src-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--hair);border-radius:12px;margin-top:10px;background:var(--row-bg);flex-wrap:wrap;transition:border-color .2s,background .2s;}
+  .src-row:hover{border-color:var(--hair-hi);background:var(--row-bg-hi);}
   .src-row .nm{font-weight:600;font-size:13.5px;}
   .src-row .url{color:var(--muted);font-size:12px;flex:1;min-width:140px;word-break:break-all;}
-  .src-row .meta{font-size:12px;color:var(--muted);}
-  .toggle-btn{display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:4px 10px;border-radius:999px;border:1px solid var(--line);font-size:12px;background:#fff;color:var(--muted);transition:all .15s ease;line-height:1;}
-  .toggle-btn::before{content:'';width:8px;height:8px;border-radius:50%;background:#cbd5e1;transition:background .15s ease;}
-  .toggle-btn.on{background:rgba(37,99,235,.08);border-color:rgba(37,99,235,.35);color:#2563eb;}
-  .toggle-btn.on::before{background:#2563eb;}
-  .toggle-btn.off::before{background:#94a3b8;}
+  .src-row .meta{font-size:12px;color:var(--faint);}
+  .toggle-btn{display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:4px 10px;border-radius:999px;border:1px solid var(--hair);font-size:12px;background:var(--chip-bg);color:var(--muted);transition:all .18s ease;line-height:1;}
+  .toggle-btn::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--dot-off);transition:background .18s ease,box-shadow .18s;}
+  .toggle-btn.on{background:var(--on-bg);border-color:var(--on-line);color:var(--on-fg);}
+  .toggle-btn.on::before{background:var(--dot-on);box-shadow:0 0 8px var(--dot-on);}
+  .toggle-btn.off::before{background:var(--dot-off);}
   .toggle-btn:active{transform:scale(.96);}
   .src-row .ops{margin-left:auto;display:flex;gap:6px;}
   .src-row .ops .btn{padding:3px 8px;font-size:12px;}
   .field{margin-bottom:12px;}
   .field label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px;font-weight:600;}
-  .field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:16px;font-family:inherit;background:#fff;}
-  .field input:focus,.field textarea:focus{border-color:var(--accent);outline:none;}
+  .field input,.field select,.field textarea{width:100%;border:1px solid var(--hair);border-radius:9px;padding:9px 11px;font-size:16px;font-family:inherit;background:var(--field-bg);color:var(--ink);transition:border-color .2s,box-shadow .2s;}
+  .field input:focus,.field textarea:focus{border-color:var(--ring-line);outline:none;box-shadow:0 0 0 3px var(--ring);}
+  .field input[type="color"]{padding:4px;height:40px;cursor:pointer;}
+  /* 数字输入去掉原生上下箭头，保持玻璃表单干净；用步进按钮或键入调节 */
+  .field input[type="number"]::-webkit-outer-spin-button,.field input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .field input[type="number"]{-moz-appearance:textfield;appearance:textfield;}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
   .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
-  .modal{position:fixed;inset:0;background:rgba(15,23,42,.4);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto;}
+  .modal{position:fixed;inset:0;background:var(--overlay);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto;}
   .modal.show{display:flex;}
-  .modal-box{background:#fff;border-radius:16px;padding:22px;max-width:640px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.25);}
+  .modal-box{background:var(--panel-bg);border:1px solid var(--hair);border-radius:18px;padding:22px;max-width:640px;width:100%;box-shadow:var(--modal-shadow);animation:modalIn .3s var(--ease-flip);}
+  @keyframes modalIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
   .modal-box h3{margin-bottom:16px;}
   .modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;}
-  .token-box{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:12px;font-size:13px;margin-bottom:14px;word-break:break-all;}
-  .msg{padding:10px 12px;border-radius:9px;font-size:13.5px;margin-bottom:14px;display:none;}
-  .msg.ok{background:#f0fdf4;color:var(--ok);border:1px solid #bbf7d0;display:block;}
-  .msg.err{background:#fef2f2;color:var(--danger);border:1px solid #fecaca;display:block;}
-  .hint{font-size:12px;color:var(--muted);line-height:1.6;}
+  .token-box{background:var(--token-bg);color:var(--token-fg);border:1px solid var(--hair);border-radius:10px;padding:12px;font-size:13px;margin-bottom:14px;word-break:break-all;}
+  .msg{padding:10px 12px;border-radius:10px;font-size:13.5px;margin-bottom:14px;display:none;border:1px solid transparent;}
+  .msg.ok{background:var(--ok-bg);color:var(--ok);border-color:var(--ok-line);display:block;}
+  .msg.err{background:var(--danger-bg);color:var(--danger);border-color:var(--danger-line);display:block;}
+  .hint{font-size:12px;color:var(--faint);line-height:1.6;}
   .empty{padding:20px;text-align:center;color:var(--muted);font-size:14px;}
+  /* 分类列表与「+ 新建分类」操作行的呼吸间距（此前 .mt 无样式导致贴死） */
+  .mt{margin-top:16px;}
+  .btnrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  /* 分类内数据源列表的节距 */
+  #groups .grp + .grp{margin-top:16px;}
+  #groups .grp{margin-bottom:0;}
+  @media (prefers-reduced-motion: reduce){.btn:hover,.btn:active,.grp:hover,.theme-btn:hover,.theme-btn:active{transform:none;}.modal-box{animation:none;}}
   @media (max-width:640px){.row2,.row3{grid-template-columns:1fr;}body{padding:16px;}}
 </style>
 </head>
@@ -63,12 +140,16 @@
 <div class="wrap">
   <header>
     <h1>
-      <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" fill="#1c2333"/><path d="M8 8h8M8 12h8M8 16h5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14M5 12h14M5 17h8" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
       看板管理后台
     </h1>
-    <div>
+    <div class="ops">
       <button class="btn btn-ghost" onclick="toggleToken()">配置 Token</button>
-      <a class="btn btn-ghost" href="/">← 返回看板</a>
+      <a class="btn btn-ghost" href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>返回看板</a>
+      <button id="themeBtn" class="theme-btn" type="button" aria-label="切换深色 / 浅色主题" title="切换深色 / 浅色主题">
+        <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 13.4A8.7 8.7 0 1 1 10.6 3.5a7 7 0 0 0 9.9 9.9z"/></svg>
+        <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.4M12 19v2.4M2.6 12H5M19 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M18.7 5.3 17 7M7 17l-1.7 1.7"/></svg>
+      </button>
     </div>
   </header>
 
@@ -82,12 +163,14 @@
         <input type="number" id="refresh" min="30" step="30" />
       </div>
     </div>
-    <button class="btn btn-primary" onclick="saveRefresh()">保存刷新设置</button>
-    <button class="btn btn-ghost" onclick="clearCache()">清除数据缓存</button>
+    <div class="btnrow" style="margin-top:14px;">
+      <button class="btn btn-primary" onclick="saveRefresh()">保存刷新设置</button>
+      <button class="btn btn-ghost" onclick="clearCache()">清除数据缓存</button>
+    </div>
   </div>
 
   <div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+    <div class="btnrow" style="justify-content:space-between;align-items:center;">
       <h3 style="margin-bottom:0;">分类管理</h3>
       <button class="btn btn-primary" onclick="openGroupModal()">+ 新建分类</button>
     </div>
@@ -313,6 +396,17 @@ function toggleToken(){
 
 function closeModal(id){ document.getElementById(id).classList.remove('show'); }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal('groupModal'); closeModal('srcModal'); } });
+
+/* ===== 主题切换（与看板共享 board_theme） ===== */
+(function(){
+  const btn=document.getElementById('themeBtn');
+  btn.addEventListener('click',()=>{
+    const next=document.documentElement.dataset.theme==='dark'?'light':'dark';
+    document.documentElement.dataset.theme=next;
+    try{localStorage.setItem('board_theme',next)}catch(e){}
+    if(btn.animate){btn.animate([{transform:'rotate(0) scale(.75)'},{transform:'rotate(200deg) scale(1)'}],{duration:380,easing:'cubic-bezier(.61,.98,.48,1.01)'});}
+  });
+})();
 
 load();
 </script>
