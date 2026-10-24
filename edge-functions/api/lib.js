@@ -122,7 +122,7 @@ export const DEFAULT_CONFIG = decorateIcon({
   cardsPerRow: 4, // PC 端每排卡片数（2~6），移动端自动单列
   groups: [
     {
-      id: 'gfinance', name: '财经行情', color: '#d97706', order: 1, cardCount: 6,
+      id: 'gfinance', name: '财经行情', color: '#d97706', order: 1, cardCount: 7,
       sources: [
         quote('qt-index', '全球指数', '#2563eb',
           ['sh000001', 'sz399001', 'sh000300', 'hkHSI', 'usNDX', 'usDJI', 'usINX'],
@@ -137,6 +137,7 @@ export const DEFAULT_CONFIG = decorateIcon({
           ['sh518880', 'sh518800', 'sz159937', 'sz159934'],
           ['黄金ETF·华安', '黄金ETF·国泰', '黄金ETF·博时', '黄金ETF·易方达'], '黄金ETF · 元/份'),
         page('hb-ruseo-gold', '国内金价·元/克', '#d97706', 'https://api.ruseo.cn/api/goldprice', 12),
+        page('hb-tmini-gold', 'Tmini 金价', '#d4af37', 'https://tmini.net/api/gold-price?type=json', 10),
         fxQuote('qt-fx', '主要汇率', '#0ea5e9',
           ['USD', 'EUR', 'GBP', 'JPY', 'HKD', 'AUD'],
           ['美元/人民币', '欧元/人民币', '英镑/人民币', '日元/人民币', '港币/人民币', '澳元/人民币'])

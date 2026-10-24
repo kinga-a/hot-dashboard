@@ -80,6 +80,17 @@ async function ruseoGold() {
   return out;
 }
 
+/* Tmini 金价：tmini.net 今日金价（免费免key，metals[] 含 name/sell_price/today_price/unit），名称 + 价格 */
+async function tminiGold() {
+  const txt = await fetchText('https://tmini.net/api/gold-price?type=json');
+  const j = JSON.parse(txt);
+  return (j.metals || []).map((m) => ({
+    title: (m.name || '') + (m.today_price ? ' · 今 ' + m.today_price : ''),
+    hot: (m.sell_price ? m.sell_price + ' ' + (m.unit || '') : '').trim(),
+    link: ''
+  })).filter((it) => it.title);
+}
+
 /* 新浪热榜：官方 top API，返回 JS 变量包裹 JSON（data[]: title/top_num/url） */
 async function sinaHot() {
   const day = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -223,6 +234,7 @@ const PARSERS = {
   'hb-redfruit': redfruit,
   'hb-douban-movie': doubanMovie,
   'hb-ruseo-gold': ruseoGold,
+  'hb-tmini-gold': tminiGold,
   'hb-sina-hot': sinaHot,
   'hb-netease': neteaseHot,
   'hb-thepaper': thePaperHot,
