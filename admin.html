@@ -129,6 +129,11 @@
   /* 分类列表与「+ 新建分类」操作行的呼吸间距（此前 .mt 无样式导致贴死） */
   .mt{margin-top:16px;}
   .btnrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  /* 全局设置：输入框与按钮同一排，压缩卡片高度 */
+  .global-card .global-row{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;}
+  .global-card .global-row .field{flex:1;min-width:200px;margin:0;}
+  .global-card .global-row .btnrow{margin:0;flex:0 0 auto;}
+  @media (max-width:640px){.global-card .global-row{flex-direction:column;align-items:stretch;}.global-card .global-row .btnrow{justify-content:flex-end;}}
   /* 分类内数据源列表的节距 */
   #groups .grp + .grp{margin-top:16px;}
   #groups .grp{margin-bottom:0;}
@@ -155,17 +160,17 @@
 
   <div id="msg"></div>
 
-  <div class="card">
+  <div class="card global-card">
     <h3>全局设置</h3>
-    <div class="row2">
+    <div class="global-row">
       <div class="field">
         <label>数据自动刷新间隔（秒）</label>
         <input type="number" id="refresh" min="30" step="30" />
       </div>
-    </div>
-    <div class="btnrow" style="margin-top:14px;">
-      <button class="btn btn-primary" onclick="saveRefresh()">保存刷新设置</button>
-      <button class="btn btn-ghost" onclick="clearCache()">清除数据缓存</button>
+      <div class="btnrow">
+        <button class="btn btn-primary" onclick="saveRefresh()">保存刷新设置</button>
+        <button class="btn btn-ghost" onclick="clearCache()">清除数据缓存</button>
+      </div>
     </div>
   </div>
 
