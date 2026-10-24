@@ -438,7 +438,15 @@ function parseItems(src, data){
   } else if (data && Array.isArray(data.data)) {
     arr = data.data;
   }
-  if (!Array.isArray(arr)) arr = [];
+  if (!Array.isArray(arr)) {
+    if (arr && typeof arr === 'object') arr = [arr];   // 单对象接口（每日一句/随机数据）当 1 条渲染
+    else arr = [];
+  }
+  // 字段取值：支持嵌套路径（如 origin.title）
+  const fv = (it, field) => {
+    if (field == null || field === '') return undefined;
+    return String(field).split('.').reduce((o, k) => (o && o[k] !== undefined) ? o[k] : undefined, it);
+  };
   const f0 = (src.fields && src.fields[0]) ? src.fields[0].field : null;
   const titleField = f0 || src.titleField || 'title';
   const urlField = src.urlField || 'url';
@@ -446,12 +454,12 @@ function parseItems(src, data){
   return arr.map((it, idx) => {
     const extra = exFields.map(f => ({
       label: f.label || '',
-      value: it[f.field] !== undefined ? it[f.field] : ''
+      value: fv(it, f.field)
     })).filter(e => e.value !== '');
     return {
       rank: it.index || (idx + 1),
-      title: it[titleField] !== undefined ? it[titleField] : (it.title || it.name || ''),
-      url: it[urlField] !== undefined ? it[urlField] : (it.link || it.url || ''),
+      title: fv(it, titleField) !== undefined ? fv(it, titleField) : (it.title || it.name || ''),
+      url: fv(it, urlField) !== undefined ? fv(it, urlField) : (it.link || it.url || ''),
       hot: it.hotValue !== undefined ? it.hotValue : (it.hot || it.num || ''),
       extra: extra.length ? extra : undefined
     };
