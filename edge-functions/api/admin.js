@@ -4,7 +4,7 @@
  * 数据源管理：添加/编辑/删除接口、配置刷新间隔
  * 鉴权：Header Authorization: Bearer <ADMIN_TOKEN>（环境变量配置）
  */
-import { getKV, readConfig, saveConfig, CORS, json } from './lib.js';
+import { getKV, readConfig, saveConfig, CORS, json, DEFAULT_CONFIG } from './lib.js';
 
 function checkAuth(context) {
   const token = context.env && context.env.ADMIN_TOKEN;
@@ -171,6 +171,31 @@ export async function onRequest(context) {
           }
         }
         result = { ok: true, cleared: '全部数据缓存已清除' };
+        break;
+      }
+
+      case 'resetConfig': { // 恢复默认配置（财经行情+影视热播+hotboard 45 平台，共 53 源）——需二次密码验证
+        const pw = String(body.password || '');
+        const adminToken = context.env && context.env.ADMIN_TOKEN;
+        if (!adminToken || pw !== adminToken) {
+          return json({ error: '密码错误，无法恢复默认配置' }, 403);
+        }
+        const def = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+        result = await saveConfig(kv, def);
+        break;
+      }
+
+      // ===== 恢复默认配置（需再次输入管理密码验证）=====
+      case 'resetConfig': {
+        const pwd = body.password || '';
+        const token = context.env && context.env.ADMIN_TOKEN;
+        if (!token) return json({ error: '未配置 ADMIN_TOKEN' }, 500);
+        if (pwd !== token) return json({ error: '密码错误，恢复默认配置已取消' }, 403);
+        const backup = await saveConfig(kv, {
+          refreshSeconds: DEFAULT_CONFIG.refreshSeconds,
+          groups: JSON.parse(JSON.stringify(DEFAULT_CONFIG.groups))
+        });
+        result = { ok: true, restored: true, groups: backup.groups.length, sources: backup.groups.reduce((n, g) => n + g.sources.length, 0) };
         break;
       }
 

@@ -170,6 +170,7 @@
       <div class="btnrow">
         <button class="btn btn-primary" onclick="saveRefresh()">保存刷新设置</button>
         <button class="btn btn-ghost" onclick="clearCache()">清除数据缓存</button>
+        <button class="btn btn-danger" onclick="openResetModal()">恢复默认配置</button>
       </div>
     </div>
   </div>
@@ -205,6 +206,23 @@
 </div>
 
 <!-- 添加数据源弹窗 -->
+<div class="modal" id="resetModal">
+  <div class="modal-box">
+    <h3>恢复默认配置</h3>
+    <p style="margin:0 0 12px;color:var(--text-dim);font-size:13px;line-height:1.6;">
+      将恢复为出厂默认：财经行情 6 卡 + 影视热播 2 卡 + hotboard 全量 45 平台（共 53 个数据源），
+      当前所有分类 / 排序 / 卡片数 / 接口改动将被覆盖。此操作不可撤销。
+    </p>
+    <div class="field">
+      <label>请输入管理密码确认</label>
+      <input type="password" id="resetPwd" placeholder="管理密码" style="width:100%;" />
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="document.getElementById('resetModal').classList.remove('show')">取消</button>
+      <button class="btn btn-danger" id="resetConfirmBtn" onclick="doResetConfig()">确认恢复默认</button>
+    </div>
+  </div>
+</div>
 <div class="modal" id="srcModal">
   <div class="modal-box">
     <h3 id="srcModalTitle">添加数据源</h3>
@@ -389,6 +407,26 @@ async function saveRefresh(){
 }
 async function clearCache(){
   try { await api('clearCache'); setMsg('已清除全部数据缓存'); } catch(e){ setMsg(e.message,'err'); }
+}
+function openResetModal(){
+  document.getElementById('resetPwd').value = '';
+  document.getElementById('resetModal').classList.add('show');
+  setTimeout(()=>document.getElementById('resetPwd').focus(), 80);
+}
+async function doResetConfig(){
+  const pwd = document.getElementById('resetPwd').value.trim();
+  if (!pwd){ setMsg('请输入管理密码', 'err'); return; }
+  const btn = document.getElementById('resetConfirmBtn');
+  btn.disabled = true; btn.textContent = '恢复中…';
+  try {
+    await api('resetConfig', { password: pwd });
+    document.getElementById('resetModal').classList.remove('show');
+    setMsg('已恢复默认配置（财经行情 + 影视热播 + hotboard 45 平台，共 53 源）');
+    load();
+  } catch(e){
+    setMsg(e.message, 'err');
+  }
+  btn.disabled = false; btn.textContent = '确认恢复默认';
 }
 
 function toggleToken(){

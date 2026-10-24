@@ -81,7 +81,7 @@ function fxQuote(id, name, color, currencies, names) {
   };
 }
 
-const DEFAULT_CONFIG = {
+export const DEFAULT_CONFIG = {
   refreshSeconds: 600,
   groups: [
     {
