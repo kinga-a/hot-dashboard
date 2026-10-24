@@ -251,13 +251,9 @@
   .card .item:hover{background:var(--row-hover);}
   .card .item:first-child{border-top:none;}
   /* ===== 展开长列表：newt-49 细滚动条（hover 才浮现）===== */
-  .card.expanded .list{max-height:min(78vh,640px);overflow-y:auto;padding-right:8px;margin-right:-8px;scrollbar-width:thin;scrollbar-color:var(--sb-line) transparent;}
-  .card .list::-webkit-scrollbar{width:8px;}
-  .card .list::-webkit-scrollbar-track{background:transparent;}
-  .card .list::-webkit-scrollbar-thumb{background:var(--sb-line);border-radius:9999px;}
-  .card:hover .list::-webkit-scrollbar-thumb{background:var(--sb-line-hi);}
-  /* 展开列表滚动条常显：无论触屏/鼠标都能看到列表可滑动，避免误以为被遮挡 */
-  .card.expanded .list{scrollbar-color:var(--sb-line) transparent;}
+  .card.expanded .list{max-height:min(78vh,640px);overflow-y:auto;padding-right:8px;margin-right:-8px;scrollbar-width:none;-ms-overflow-style:none;}
+  .card.expanded .list::-webkit-scrollbar{display:none;}
+  /* 展开列表可滑动但不显示滚动条（视觉干净）；触屏/滚轮滑动保留，"已展开·共N条"提示兜底 */
   /* 行情行：名称 + 点位 + 涨跌（红涨绿跌，国内习惯） */
   .item.q{align-items:center;gap:8px;}
   .item.q a{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
