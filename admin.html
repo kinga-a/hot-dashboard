@@ -131,6 +131,9 @@
   .btnrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
   /* 全局设置：输入框与按钮同一排，压缩卡片高度 */
   .global-card .global-row{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;}
+  .danger-card{border-color:var(--danger-line);background:var(--danger-bg);}
+  .danger-card h3{color:var(--danger);}
+  .danger-desc{margin:12px 0 0;color:var(--muted);font-size:13px;line-height:1.7;}
   .global-card .global-row .field{flex:1;min-width:200px;margin:0;}
   .global-card .global-row .btnrow{margin:0;flex:0 0 auto;}
   @media (max-width:640px){.global-card .global-row{flex-direction:column;align-items:stretch;}.global-card .global-row .btnrow{justify-content:flex-end;}}
@@ -170,7 +173,6 @@
       <div class="btnrow">
         <button class="btn btn-primary" onclick="saveRefresh()">保存刷新设置</button>
         <button class="btn btn-ghost" onclick="clearCache()">清除数据缓存</button>
-        <button class="btn btn-danger" onclick="openResetModal()">恢复默认配置</button>
       </div>
     </div>
   </div>
@@ -181,6 +183,17 @@
       <button class="btn btn-primary" onclick="openGroupModal()">+ 新建分类</button>
     </div>
     <div id="groups" class="mt"></div>
+  </div>
+
+  <div class="card danger-card">
+    <div class="btnrow" style="justify-content:space-between;align-items:center;">
+      <h3 style="margin-bottom:0;">危险操作</h3>
+      <button class="btn btn-danger" onclick="openResetModal()">恢复默认配置</button>
+    </div>
+    <p class="danger-desc">
+      将整个看板恢复为出厂默认：财经行情 6 卡 + 影视热播 2 卡 + hotboard 全量 45 平台（共 53 个数据源）。
+      当前所有分类 / 排序 / 卡片数 / 数据源改动将被覆盖，操作需输入管理密码确认。
+    </p>
   </div>
 
   <div class="hint" style="margin-top:20px;text-align:center;">
