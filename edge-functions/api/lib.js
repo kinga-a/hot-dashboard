@@ -81,7 +81,43 @@ function fxQuote(id, name, color, currencies, names) {
   };
 }
 
-export const DEFAULT_CONFIG = {
+// 平台图标映射（icons/ 目录，来自 hotboard 开源图标集）；行情类源无图标，前端保持折线图标
+const ICONS = {
+  // 综合热搜
+  KqndgxeLl9: 'weibo.svg', mproPpoq6O: 'zhihu.png', Jb0vmloB1G: 'baidu.png',
+  toutiao: 'toutiao.png', WnBe01o371: 'wechat.svg', K7GdagpoQy: 'smzdm.jpg',
+  Om4ejxvxEN: 'tieba.jpg', 'hb-sina-hot': 'sinahot.jpg', 'hb-netease': 'netease.jpg',
+  // 科技开发
+  rYqoXQ8vOD: 'github.png', QaqeEaVe9R: 'juejin.svg', Y2KeDGQdNP: 'sspai.png',
+  '74Kvx59dkx': 'ithome.png', Q1Vd5Ko85R: 'kr36.jpg', DgeyrgMoZq: 'csdn.svg',
+  VaobJ88oAj: 'zcool.svg', '5VaobgvAj1': 'huxiu.jpg', rYqoXZzdOD: 'oschina.jpg',
+  '20MdKx4ew1': 'renren.jpg',
+  // 海外视野
+  LBwdG0jePx: 'phunt.svg', 'hb-hn': 'hackernews.ico', 'hb-devto': 'devto.svg',
+  'hb-appstore': 'appstore.png', 'hb-bbc': 'bbc.svg', 'hb-nyt': 'newyorktimes.svg',
+  'hb-guardian': 'theguardian.svg', 'hb-aljazeera': 'aljazeera.png', 'hb-npr': 'npr.png',
+  'hb-dw': 'dw.png',
+  // 新闻资讯
+  '12owgX0oNV': 'txnews.png', rx9ozj7oXb: 'sina.png', '0MdKam4ow1': 'cbn.png',
+  X12owXzvNV: 'xueqiu.jpg', G2me3ndwjq: 'wallstreetcn.jpg', 'hb-thepaper': 'thepaper.jpg',
+  'hb-chinanews': 'chinanews.jpg', 'hb-tencent-news': 'txnews.png',
+  // 影音娱乐
+  '74KvxwokxM': 'bili.png', 'hb-bili-hot': 'bili.png', DpQvNABoNE: 'douyin.png',
+  'hb-douban-chart': 'douban.svg', 'hb-douban-movie': 'douban.svg',
+  G47o8weMmN: 'hupu.png', '4KvxEX0dkx': 'weread.svg', n3moBE1eN5: 'dongqiudi.png',
+  MZd7PrPerO: 'kuaishou.jpg', '9JndkpJe3V': 'maoyan.jpg', VaobbkqoAj: 'imdb.svg'
+};
+
+function decorateIcon(config) {
+  for (const g of config.groups || []) {
+    for (const s of g.sources || []) {
+      if (!s.icon && ICONS[s.id]) s.icon = 'icons/' + ICONS[s.id];
+    }
+  }
+  return config;
+}
+
+export const DEFAULT_CONFIG = decorateIcon({
   refreshSeconds: 600,
   cardsPerRow: 4, // PC 端每排卡片数（2~6），移动端自动单列
   groups: [
@@ -186,7 +222,7 @@ export const DEFAULT_CONFIG = {
       ]
     }
   ]
-};
+});
 
 // 读取看板配置（不存在则返回默认配置）
 export async function readConfig(kv) {

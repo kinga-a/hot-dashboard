@@ -22,6 +22,7 @@ export async function onRequestGet(context) {
         name: s.name,
         url: s.url || '',
         iconColor: s.iconColor,
+        icon: s.icon || '',
         showItems: s.showItems || 6,
         listPath: s.listPath || '',
         titleField: s.titleField || 'title',
