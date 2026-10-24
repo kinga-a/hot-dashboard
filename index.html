@@ -251,8 +251,7 @@
   .card .item:hover{background:var(--row-hover);}
   .card .item:first-child{border-top:none;}
   /* ===== 展开长列表：newt-49 细滚动条（hover 才浮现）===== */
-  .card.expanded .list{max-height:min(60vh,460px);overflow-y:auto;padding-right:8px;margin-right:-8px;scrollbar-width:thin;scrollbar-color:transparent transparent;}
-  .card.expanded:hover .list{scrollbar-color:var(--sb-line) transparent;}
+  .card.expanded .list{max-height:min(72vh,560px);overflow-y:auto;padding-right:8px;margin-right:-8px;scrollbar-width:thin;scrollbar-color:var(--sb-line) transparent;}
   .card .list::-webkit-scrollbar{width:8px;}
   .card .list::-webkit-scrollbar-track{background:transparent;}
   .card .list::-webkit-scrollbar-thumb{background:transparent;border-radius:9999px;}
@@ -459,7 +458,7 @@ function parseItems(src, data){
       value: fv(it, f.field)
     })).filter(e => e.value !== '');
     return {
-      rank: it.index || (idx + 1),
+      rank: (idx + 1),   // 序号统一本地计算（数据源 index 字段不可靠，如 codelife 从 0 开始）
       title: fv(it, titleField) !== undefined ? fv(it, titleField) : (it.title || it.name || ''),
       url: fv(it, urlField) !== undefined ? fv(it, urlField) : (it.link || it.url || ''),
       hot: it.hotValue !== undefined ? it.hotValue : (it.hot || it.num || ''),
